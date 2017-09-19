@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Settings>
+  <MonitorSettings>
+    <MonitorSetting MonitorDirectory="" SubscribeIP="" DeleteFiles="" DeleteSubdirectory="" ></MonitorSetting>
+  </MonitorSettings>
+  <SubscribeSettings>
+    <SubscribeSetting MonitorIP="" MonitorDirectory="" AcceptDirectory=""></SubscribeSetting>
+  </SubscribeSettings>
+  <ServiceSetting ListenPort=""></ServiceSetting>
+</Settings>

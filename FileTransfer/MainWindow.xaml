@@ -1,0 +1,121 @@
+﻿<Window x:Class="FileTransfer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:FileTransfer.ViewModels"
+        xmlns:converter="clr-namespace:FileTransfer.Converters"
+        xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+        Title="文件监控传输" Height="560" Width="1000" Loaded="Window_Loaded" Closed="Window_Closed">
+    <Window.Resources>
+        <vm:ViewModelLocator x:Key="Locator"></vm:ViewModelLocator>
+        <converter:MonitorFlagConverter x:Key="MonitorFlagConverter"></converter:MonitorFlagConverter>
+        <converter:SetPortConverter x:Key="SetPortConverter"></converter:SetPortConverter>
+        <Style TargetType="{x:Type DataGridRow}">
+            <Setter Property="ContextMenu">
+                <Setter.Value>
+                    <ContextMenu>
+                        <MenuItem Header="删除" Command="{Binding Path=MainViewModel.DeleteSettingCommand, Source={StaticResource Locator}}"
+                                  CommandParameter="{Binding Path=PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"></MenuItem>
+                    </ContextMenu>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="{x:Type DataGrid}">
+            <Setter Property="CanUserAddRows" Value="False"></Setter>
+            <Setter Property="CanUserDeleteRows" Value="False"></Setter>
+            <Setter Property="AutoGenerateColumns" Value="False"></Setter>
+            <Setter Property="Margin" Value="5"></Setter>
+        </Style>
+    </Window.Resources>
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="Loaded">
+            <i:InvokeCommandAction Command="{Binding Path=MainViewModel.LoadedCommand, Source={StaticResource Locator}}"></i:InvokeCommandAction>
+        </i:EventTrigger>
+        <i:EventTrigger EventName="Closed">
+            <i:InvokeCommandAction Command="{Binding Path=MainViewModel.ClosedCommand, Source={StaticResource Locator}}"></i:InvokeCommandAction>
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
+    <Grid>
+        <TabControl>
+            <TabItem Header="监控设置">
+                <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="5" Margin="3">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"></RowDefinition>
+                            <RowDefinition Height="1*"></RowDefinition>
+                            <RowDefinition Height="Auto"></RowDefinition>
+                        </Grid.RowDefinitions>
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5,3,5,3">
+                            <Button Content="设置监控" Width="100" Height="25" Margin="3" Command="{Binding Path=MainViewModel.AddMonitorCommand, Source={StaticResource Locator}}"></Button>
+                            <Button Content="查看日志" Width="100" Height="25" Margin="3" Command="{Binding Path=MainViewModel.QueryLogsCommand, Source={StaticResource Locator}}"></Button>
+                        </StackPanel>
+                        <DataGrid Grid.Row="1" ItemsSource="{Binding Path=MainViewModel.MonitorCollection, Source={StaticResource Locator}}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="监控文件夹" IsReadOnly="True" Binding="{Binding Path=MonitorDirectory}" Width="250"></DataGridTextColumn>
+                                <DataGridTextColumn Header="订阅者IP" IsReadOnly="True" Binding="{Binding Path=SubscribeIP}" Width="200"></DataGridTextColumn>
+                                <DataGridCheckBoxColumn Header="是否删除文件" Binding="{Binding Path=DeleteFiles}"></DataGridCheckBoxColumn>
+                                <DataGridCheckBoxColumn Header="是否删除子文件夹" Binding="{Binding Path=DeleteSubdirectory}"></DataGridCheckBoxColumn>
+                                <DataGridTemplateColumn Header="发送进度" Width="150" IsReadOnly="True">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Grid Margin="3,1,3,1">
+                                                <ProgressBar Value="{Binding Path=TransferPercent}" Minimum="0" Maximum="1"></ProgressBar>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="发送文件名" IsReadOnly="True" Binding="{Binding Path=TransferFileName}" Width="*"></DataGridTextColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <StackPanel Grid.Row="2" Background="Gray" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,3,5,3">
+                            <TextBlock Foreground="Red" FontSize="18" Text="{Binding Source={StaticResource Locator}, Path=MainViewModel.NotifyText}"></TextBlock>
+                        </StackPanel>
+                        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5,3,5,3">
+                            <StackPanel Orientation="Horizontal" Margin="5,0,5,0">
+                                <TextBlock Text="监听端口：" VerticalAlignment="Center"></TextBlock>
+                                <TextBox Width="100" Height="25" Text="{Binding Path=MainViewModel.ListenPort, Source={StaticResource Locator}}" 
+                                         IsEnabled="{Binding Path=MainViewModel.CanSetListenPort, Source={StaticResource Locator}}" VerticalContentAlignment="Center"></TextBox>
+                                <Button Content="{Binding Path=MainViewModel.CanSetListenPort, Source={StaticResource Locator}, Converter={StaticResource SetPortConverter}}"
+                                        Command="{Binding Path=MainViewModel.SetListenPortCommand, Source={StaticResource Locator}}" 
+                                        CommandParameter="{Binding Source={StaticResource Locator}, Path=MainViewModel.CanSetListenPort}" Width="100" Height="25" Margin="5,0,15,0"></Button>
+                            </StackPanel>
+                            <Button Content="{Binding Path=MainViewModel.MonitorFlag, Source={StaticResource Locator}, Converter={StaticResource MonitorFlagConverter}}"
+                                    Command="{Binding Path=MainViewModel.ControlMonitorCommand, Source={StaticResource Locator}}"
+                                    CommandParameter="{Binding Path=MainViewModel.MonitorFlag, Source={StaticResource Locator}}" Width="100" Height="25"></Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </TabItem>
+            <TabItem Header="接收设置">
+                <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="5" Margin="3">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"></RowDefinition>
+                            <RowDefinition Height="1*"></RowDefinition>
+                        </Grid.RowDefinitions>
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5,3,5,3">
+                            <Button Content="设置接收" Width="100" Height="25" Margin="3" Command="{Binding Path=MainViewModel.AddSubscibeCommand, Source={StaticResource Locator}}"></Button>
+                            <Button Content="查看日志" Width="100" Height="25" Margin="3" Command="{Binding Path=MainViewModel.QueryLogsCommand, Source={StaticResource Locator}}"></Button>
+                        </StackPanel>
+                        <DataGrid Grid.Row="1" ItemsSource="{Binding Path=MainViewModel.SubscribeCollection, Source={StaticResource Locator}}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="监控者IP" IsReadOnly="True" Binding="{Binding Path=MonitorIP}" Width="200"></DataGridTextColumn>
+                                <DataGridTextColumn Header="监控文件夹" IsReadOnly="True" Binding="{Binding Path=MonitorDirectory}" Width="250"></DataGridTextColumn>
+                                <DataGridTextColumn Header="接收文件夹" IsReadOnly="True" Binding="{Binding Path=AcceptDirectory}" Width="250"></DataGridTextColumn>
+                                <DataGridTemplateColumn Header="接收进度" Width="150" IsReadOnly="True">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Grid Margin="3,1,3,1">
+                                                <ProgressBar Value="{Binding Path=AcceptFilePercent}" Minimum="0" Maximum="1"></ProgressBar>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="接收文件名" IsReadOnly="True" Binding="{Binding Path=AcceptFileName}" Width="*"></DataGridTextColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </Border>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>
