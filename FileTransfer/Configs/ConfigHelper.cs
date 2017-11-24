@@ -1,4 +1,6 @@
 ﻿using FileTransfer.Models;
+using FileTransfer.ViewModels;
+using GalaSoft.MvvmLight.Ioc;
 using log4net;
 using System;
 using System.Collections.Generic;
@@ -47,6 +49,14 @@ namespace FileTransfer.Configs
         {
             get { return _listenPort; }
         }
+
+        private int _scanPerid;
+
+        public int ScanPeriod
+        {
+            get { return _scanPerid; }
+        }
+
         #endregion
 
         #region 构造函数
@@ -138,12 +148,13 @@ namespace FileTransfer.Configs
             }
         }
 
-        public void SaveSettings(List<MonitorModel> monitors, List<SubscribeModel> subscribes, int port)
+        public void SaveSettings(List<MonitorModel> monitors, List<SubscribeModel> subscribes, int port, int scanPeriod)
         {
-            ConfigClass config = new ConfigClass(monitors, subscribes, port);
             _monitorSettings = monitors;
             _subscribeSettings = subscribes;
             _listenPort = port;
+            _scanPerid = scanPeriod;
+            var config = new ConfigClass(monitors, subscribes, port, scanPeriod);
             ExportXml(_settingPath, config);
         }
 
@@ -152,12 +163,20 @@ namespace FileTransfer.Configs
             ConfigClass config = ImportXml(_settingPath) as ConfigClass;
             if (config == null)
             {
-                _logger.Info("加载配置文件转换异常！");
+                _logger.Info("加载配置文件转换异常！采用默认配置。");
+                _monitorSettings = new List<MonitorModel>();
+                _subscribeSettings = new List<SubscribeModel>();
+                _listenPort = 8888;
+                _scanPerid = 5;
                 return;
             }
-            _monitorSettings = config.MonitorSettings;
-            _subscribeSettings = config.SubscribeSettings;
-            _listenPort = config.ListenPort;
+            else
+            {
+                _monitorSettings = config.MonitorSettings;
+                _subscribeSettings = config.SubscribeSettings;
+                _listenPort = config.ListenPort;
+                _scanPerid = config.ScanPeriod;
+            }
         }
 
         #endregion

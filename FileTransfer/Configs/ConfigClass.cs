@@ -33,17 +33,27 @@ namespace FileTransfer.Configs
             get { return _listenPort; }
             set { _listenPort = value; }
         }
+
+        private int _scanPeriod;
+        [XmlElement("ScanPeriod")]
+        public int ScanPeriod
+        {
+            get { return _scanPeriod; }
+            set { _scanPeriod = value; }
+        }
+
         #endregion
 
         #region 构造函数
         public ConfigClass()
         { }
 
-        public ConfigClass(List<MonitorModel> monitors, List<SubscribeModel> subscribes, int listenPort)
+        public ConfigClass(List<MonitorModel> monitors, List<SubscribeModel> subscribes, int listenPort, int scanPeriod)
         {
             MonitorSettings = monitors;
             SubscribeSettings = subscribes;
             ListenPort = listenPort;
+            ScanPeriod = scanPeriod;
         }
         #endregion
     }

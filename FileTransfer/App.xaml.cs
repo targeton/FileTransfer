@@ -20,7 +20,6 @@ namespace FileTransfer
         private void Application_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
         {
             _logger.Error(string.Format("应用程序FileTransfer发生了未知的异常！异常为：{0}", e.Exception.Message));
-            ConfigHelper.Instance.SaveSettings(SimpleIoc.Default.GetInstance<MainViewModel>().MonitorCollection.ToList(), SimpleIoc.Default.GetInstance<MainViewModel>().SubscribeCollection.ToList(), SimpleIoc.Default.GetInstance<MainViewModel>().ListenPort);
             MessageBox.Show("应用程序遇到异常问题！请检查！", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
             e.Handled = true;
             this.Shutdown();

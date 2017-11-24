@@ -46,10 +46,10 @@
                             </Binding>
                         </TextBox.Text>
                     </TextBox>
-                    <TextBlock Text="远端监听端口：" VerticalAlignment="Center"></TextBlock>
+                    <TextBlock Text="远端接收端口：" VerticalAlignment="Center"></TextBlock>
                     <TextBox Margin="5,0,5,0" Width="50" Height="25" VerticalContentAlignment="Center" InputMethod.IsInputMethodEnabled="False">
                         <TextBox.Text>
-                            <Binding Path="SubscribeViewModel.RemotePort" Source="{StaticResource Locator}" UpdateSourceTrigger="LostFocus">
+                            <Binding Path="SubscribeViewModel.RemotePort" Source="{StaticResource Locator}" UpdateSourceTrigger="PropertyChanged">
                                 <Binding.ValidationRules>
                                     <rule:PosIntCheckRule/>
                                 </Binding.ValidationRules>

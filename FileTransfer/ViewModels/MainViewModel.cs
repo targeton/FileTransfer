@@ -2,6 +2,7 @@
 using FileTransfer.FileWatcher;
 using FileTransfer.Models;
 using FileTransfer.Sockets;
+using FileTransfer.Utils;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
@@ -82,6 +83,19 @@ namespace FileTransfer.ViewModels
             }
         }
 
+        private int _scanPeriod;
+
+        public int ScanPeriod
+        {
+            get { return _scanPeriod; }
+            set
+            {
+                _scanPeriod = value;
+                RaisePropertyChanged("ScanPeriod");
+            }
+        }
+
+
         private string _notifyText;
 
         public string NotifyText
@@ -132,10 +146,9 @@ namespace FileTransfer.ViewModels
             QueryLogsCommand = new RelayCommand(ExecuteQueryLogsCommand);
             LoadedCommand = new RelayCommand(ExecuteLoadedCommand);
             ClosedCommand = new RelayCommand(ExecuteClosedCommand);
-            AddSubscibeCommand = new RelayCommand(ExecuteAddSubscibeCommand);
+            AddSubscibeCommand = new RelayCommand(ExecuteAddSubscibeCommand, CanExecuteAddSubscibeCommand);
             SetListenPortCommand = new RelayCommand<bool>(ExecuteSetListenPortCommand);
         }
-
 
         private void ExecuteControlMonitorCommand(bool control)
         {
@@ -234,18 +247,45 @@ namespace FileTransfer.ViewModels
         {
             var model1 = deleteItem as MonitorModel;
             if (model1 != null)
+            {
+                //检查发送标志位（若为true则不允许删除配置）
+                if (SynchronousSocketManager.Instance.SendingFilesFlag)
+                {
+                    MessageBox.Show("当前正在发送文件，不允许删除任何监控配置项！", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+                //删除监控配置
                 MonitorCollection.Remove(model1);
+                if (string.IsNullOrEmpty(model1.SubscribeIP)) return;
+                //删除监控配置后通知相关订阅方，删除相关配置
+                SynchronousSocketManager.Instance.SendDeleteMonitorInfo(UtilHelper.Instance.GetIPEndPoint(model1.SubscribeIP), model1.MonitorDirectory);
+            }
             else
             {
                 var model2 = deleteItem as SubscribeModel;
                 if (model2 == null) return;
+                //检查接收标志位（若为true则不允许删除配置）
+                if (SynchronousSocketManager.Instance.ReceivingFlag)
+                {
+                    MessageBox.Show("当前正在接收，不允许删除任何接收配置项！", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+                //删除接收配置
                 SubscribeCollection.Remove(model2);
+                //删除接收配置后，综合接收配置决定是否通知监控端删除订阅信息
+                if (SubscribeCollection.FirstOrDefault(s => s.MonitorIP == model2.MonitorIP) == null)
+                    SynchronousSocketManager.Instance.SendUnregisterSubscribeInfo(UtilHelper.Instance.GetIPEndPoint(string.Format("{0}:{1}", model2.MonitorIP, model2.MonitorListenPort)), model2.MonitorDirectory);
             }
         }
 
         private void ExecuteQueryLogsCommand()
         {
-
+            if (SynchronousSocketManager.Instance.SendingFilesFlag || SynchronousSocketManager.Instance.ReceivingFlag)
+            {
+                MessageBox.Show("当前程序正在接发数据！", "提醒", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            Messenger.Default.Send<string>("ShowLogsQueryView");
         }
 
         private void ExecuteLoadedCommand()
@@ -260,8 +300,9 @@ namespace FileTransfer.ViewModels
                 ConfigHelper.Instance.SubscribeSettings.ForEach(s => subscribeTemp.Add(s));
                 SubscribeCollection = new ObservableCollection<SubscribeModel>(subscribeTemp);
                 ListenPort = ConfigHelper.Instance.ListenPort;
+                ScanPeriod = ConfigHelper.Instance.ScanPeriod;
                 //订阅事件
-                FileWatcherHelper.Instance.NotifyMonitorIncrement = SynchronousSocketManager.Instance.SendMonitorChanges;
+                FileWatcherHelper.Instance.NotifyMonitorChanges = SynchronousSocketManager.Instance.SendMonitorChanges;
                 SynchronousSocketManager.Instance.SendFileProgress += ShowSendProgress;
                 SynchronousSocketManager.Instance.AcceptFileProgress += ShowAcceptProgress;
                 SynchronousSocketManager.Instance.CompleteSendFile += ShowCompleteSendFile;
@@ -312,9 +353,16 @@ namespace FileTransfer.ViewModels
 
         private void ExecuteClosedCommand()
         {
-            ConfigHelper.Instance.SaveSettings(MonitorCollection.ToList(), SubscribeCollection.ToList(), ListenPort);
+            var monitors = MonitorCollection.ToList();
+            var subscribes = SubscribeCollection.ToList();
+            ConfigHelper.Instance.SaveSettings(monitors, subscribes, ListenPort, ScanPeriod);
             SynchronousSocketManager.Instance.StopListening();
             _logger.Info("主窗体卸载完毕!");
+        }
+
+        private bool CanExecuteAddSubscibeCommand()
+        {
+            return !SynchronousSocketManager.Instance.ReceivingFlag && !SynchronousSocketManager.Instance.SendingFilesFlag;
         }
 
         private void ExecuteAddSubscibeCommand()
@@ -331,6 +379,12 @@ namespace FileTransfer.ViewModels
             }
             else
             {
+                //判断是否有接收（有的话则不允许关闭监听）
+                if (SynchronousSocketManager.Instance.ReceivingFlag)
+                {
+                    MessageBox.Show("当前监听端口正在接收信息！暂不允许关闭！", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
                 SynchronousSocketManager.Instance.StopListening();
                 CanSetListenPort = true;
             }
@@ -341,17 +395,31 @@ namespace FileTransfer.ViewModels
         #region 公共方法
         public void CompleteMonitorSetting(string subscribeIP, string monitorDirectory)
         {
+            if (MonitorCollection.Any(m => m.MonitorDirectory == monitorDirectory && m.SubscribeIP == subscribeIP)) return;
             var monitor = MonitorCollection.FirstOrDefault(m => m.MonitorDirectory == monitorDirectory);
             if (monitor == null) return;
             if (string.IsNullOrEmpty(monitor.SubscribeIP))
                 monitor.SubscribeIP = subscribeIP;
-            else if (monitor.SubscribeIP == subscribeIP)
-                return;
             else
             {
-                MonitorCollection.Add(new MonitorModel() { MonitorDirectory = monitorDirectory, SubscribeIP = subscribeIP });
-                FileWatcherHelper.Instance.AddNewMonitor(monitorDirectory);
+                App.Current.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    MonitorCollection.Add(new MonitorModel() { MonitorDirectory = monitorDirectory, SubscribeIP = subscribeIP });
+                }));
             }
+        }
+
+        public void RemoveAcceptSettings(string monitorIP, string monitorDirectory)
+        {
+            var accepts = SubscribeCollection.Where(s => s.MonitorIP == monitorIP && s.MonitorDirectory == monitorDirectory).ToList();
+            App.Current.Dispatcher.BeginInvoke(new Action(() =>
+            {
+                foreach (var accept in accepts)
+                {
+                    SubscribeCollection.Remove(accept);
+                }
+            }));
+
         }
         #endregion
 

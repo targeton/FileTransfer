@@ -23,6 +23,18 @@ namespace FileTransfer.Models
             }
         }
 
+        private int _monitorListenPort;
+        [XmlAttribute("MonitorListenPort")]
+        public int MonitorListenPort
+        {
+            get { return _monitorListenPort; }
+            set
+            {
+                _monitorListenPort = value;
+                RaisePropertyChanged("MonitorListenPort");
+            }
+        }
+
         private string _monitorDirectory;
         [XmlAttribute("MonitorDirectory")]
         public string MonitorDirectory

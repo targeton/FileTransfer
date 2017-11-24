@@ -22,8 +22,8 @@ namespace FileTransfer.Sockets
         private const int CONNECTED_MAXCOUNT = 5;
         //64k
         private const int BUFFER_SIZE = 65536;
-        private const int SOCKET_SEND_TIMEOUT = 5000;
-        private const int SOCKET_RECEIVE_TIMEOUT = 5000;
+        private const int SOCKET_SEND_TIMEOUT = 0;
+        private const int SOCKET_RECEIVE_TIMEOUT = 0;
         #endregion
 
         #region 变量
@@ -62,6 +62,22 @@ namespace FileTransfer.Sockets
         {
             get { return _localListenPort; }
         }
+
+        private bool _sendingFilesFlag;
+
+        public bool SendingFilesFlag
+        {
+            get { return _sendingFilesFlag; }
+        }
+
+        private bool _recevingFlag;
+
+        public bool ReceivingFlag
+        {
+            get { return _recevingFlag; }
+        }
+
+
         #endregion
 
         #region 构造函数
@@ -106,6 +122,8 @@ namespace FileTransfer.Sockets
         {
             try
             {
+                //设置接收标志位
+                _recevingFlag = true;
                 //配置Socket的Timeout
                 socket.ReceiveTimeout = SOCKET_RECEIVE_TIMEOUT;
                 byte[] headerBytes = new byte[16];
@@ -125,26 +143,79 @@ namespace FileTransfer.Sockets
                     case "$BTF#":
                         ReceiveFiles(socket);
                         break;
+                    case "$DMF#":
+                        ReceiveDeleteMonitor(socket);
+                        break;
+                    case "$DSF#":
+                        ReceiveUnregeistSubscirbe(socket);
+                        break;
                     default:
                         _logger.Error(string.Format("套接字所接受字节数据无法转换为有效数据！转换结果为：{0}", headerMsg));
                         break;
                 }
+                //回复接收标志位
+                _recevingFlag = false;
             }
             catch (SocketException se)
             {
                 _logger.Error(string.Format("本地接收远端套接字的发送数据时，发生套接字异常！SocketException ErrorCode:{0}", se.ErrorCode));
                 CloseSocket(socket);
                 MessageBox.Show("本地接收远端套接字的发送数据时，发生套接字异常！", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                //回复接收标志位
+                _recevingFlag = false;
             }
             catch (Exception e)
             {
                 _logger.Error(string.Format("本地接收远端套接字的发送数据时，发生异常！异常为：{0}", e.Message));
                 CloseSocket(socket);
                 MessageBox.Show("本地接收远端套接字的发送数据时，发生异常！", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                //回复接收标志位
+                _recevingFlag = false;
             }
         }
 
-        private void ReceiveFiles(System.Net.Sockets.Socket socket)
+        private void ReceiveUnregeistSubscirbe(Socket socket)
+        {
+            //获取要注销的IP地址和监控文件夹信息
+            byte[] receiveBytes = new byte[64];
+            int byteRec = socket.Receive(receiveBytes, 0, 64, SocketFlags.None);
+            string subscribeIp = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
+            receiveBytes = new byte[4];
+            byteRec = socket.Receive(receiveBytes, 0, 4, SocketFlags.None);
+            int directoryLength = BitConverter.ToInt32(receiveBytes.Take(byteRec).ToArray(), 0);
+            receiveBytes = new byte[directoryLength];
+            byteRec = socket.Receive(receiveBytes, 0, directoryLength, SocketFlags.None);
+            string monitorDirectory = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
+            //注销本地订阅信息
+            SimpleIoc.Default.GetInstance<MainViewModel>().MonitorCollection.Where(m => m.MonitorDirectory == monitorDirectory && m.SubscribeIP == subscribeIp).ToList().ForEach(m => m.SubscribeIP = "");
+            //发送断开信息
+            byte[] disconnectBytes = new byte[16];
+            Encoding.Unicode.GetBytes("$DSK#").CopyTo(disconnectBytes, 0);
+            socket.Send(disconnectBytes, 0, 16, SocketFlags.None);
+        }
+
+        private void ReceiveDeleteMonitor(Socket socket)
+        {
+            //获取远端发送方的IP信息
+            byte[] receiveBytes = new byte[32];
+            int byteRec = socket.Receive(receiveBytes, 0, 32, SocketFlags.None);
+            string monitorIp = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
+            //获取监控文件夹信息
+            receiveBytes = new byte[4];
+            byteRec = socket.Receive(receiveBytes, 0, 4, SocketFlags.None);
+            int floderLength = BitConverter.ToInt32(receiveBytes.Take(byteRec).ToArray(), 0);
+            receiveBytes = new byte[floderLength];
+            byteRec = socket.Receive(receiveBytes, 0, floderLength, SocketFlags.None);
+            string monitorDirectory = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
+            //删除本地对应监控的接收配置
+            SimpleIoc.Default.GetInstance<MainViewModel>().RemoveAcceptSettings(monitorIp, monitorDirectory);
+            //发送断开信息
+            byte[] disconnectBytes = new byte[16];
+            Encoding.Unicode.GetBytes("$DSK#").CopyTo(disconnectBytes, 0);
+            socket.Send(disconnectBytes, 0, 16, SocketFlags.None);
+        }
+
+        private void ReceiveFiles(Socket socket)
         {
             //获取远端发送方的IP信息
             byte[] receiveBytes = new byte[32];
@@ -182,7 +253,7 @@ namespace FileTransfer.Sockets
                 //检查文件夹是否存在
                 acceptFiles.ForEach(f => { IOHelper.Instance.CheckAndCreateDirectory(f); });
                 //日志记录
-                acceptFiles.ForEach(file => { _logger.Info(string.Format("[File]{0}[FileReceiveState]{1}", file, @"开始接收")); });
+                acceptFiles.ForEach(file => { _logger.Info(string.Format("[File]{0}[MonitorIP]{1}[MonitorDirectory]{2}[FileReceiveState]{3}", file, monitorIp, monitorDirectory, @"开始接收")); });
                 //设置文件流
                 List<FileStream> fileStreams = acceptFiles.Select(f => new FileStream(f, FileMode.Create, FileAccess.Write)).ToList();
                 //接收文件
@@ -205,7 +276,7 @@ namespace FileTransfer.Sockets
                     byteRec = socket.Receive(buffer, 0, tempSize, SocketFlags.None);
                     fileStreams.ForEach(fs => { fs.Write(buffer.Take(byteRec).ToArray(), 0, byteRec); });
                     index += byteRec;
-                    Thread.Sleep(5);
+                    Thread.Sleep(1);
                 }
                 //关闭文件流
                 fileStreams.ForEach(fs => { fs.Close(); });
@@ -215,10 +286,10 @@ namespace FileTransfer.Sockets
                     AcceptFileProgress(monitorIp, monitorDirectory, fileName, 1.0);
                 }
                 //日志记录
-                acceptFiles.ForEach(file => { _logger.Info(string.Format("[File]{0}[FileReceiveState]{1}", file, @"完成接收")); });
+                acceptFiles.ForEach(file => { _logger.Info(string.Format("[File]{0}[MonitorIP]{1}[MonitorDirectory]{2}[FileReceiveState]{3}", file, monitorIp, monitorDirectory, @"完成接收")); });
                 //自加一
                 fileNumIndex++;
-                Thread.Sleep(50);
+                Thread.Sleep(10);
             }
             //发出所有文件接收完毕事件
             if (CompleteAcceptFile != null)
@@ -229,7 +300,7 @@ namespace FileTransfer.Sockets
             socket.Send(disconnectBytes, 0, 16, SocketFlags.None);
         }
 
-        private void ReceiveSubscribInfo(System.Net.Sockets.Socket socket)
+        private void ReceiveSubscribInfo(Socket socket)
         {
             //获取订阅者IP
             byte[] ipBytes = new byte[64];
@@ -253,27 +324,27 @@ namespace FileTransfer.Sockets
             socket.Send(disconnectBytes, 0, 16, SocketFlags.None);
         }
 
-        private int GetRemoteListenPort(System.Net.Sockets.Socket socket)
-        {
-            try
-            {
-                byte[] portBytes = new byte[16];
-                int byteRec = socket.Receive(portBytes, 16, SocketFlags.None);
-                string portStr = Encoding.Unicode.GetString(portBytes, 0, 16).TrimEnd('\0');
-                int port = int.Parse(portStr);
-                return port;
-            }
-            catch (SocketException se)
-            {
-                _logger.Error(string.Format("获取远端监听端口信息时发生套接字异常！SocketException ErrorCode：{0}", se.ErrorCode));
-                return -1;
-            }
-            catch (Exception e)
-            {
-                _logger.Error(string.Format("获取远端监听端口信息时发生异常！异常信息：{0}", e.Message));
-                return -1;
-            }
-        }
+        //private int GetRemoteListenPort(System.Net.Sockets.Socket socket)
+        //{
+        //    try
+        //    {
+        //        byte[] portBytes = new byte[16];
+        //        int byteRec = socket.Receive(portBytes, 16, SocketFlags.None);
+        //        string portStr = Encoding.Unicode.GetString(portBytes, 0, 16).TrimEnd('\0');
+        //        int port = int.Parse(portStr);
+        //        return port;
+        //    }
+        //    catch (SocketException se)
+        //    {
+        //        _logger.Error(string.Format("获取远端监听端口信息时发生套接字异常！SocketException ErrorCode：{0}", se.ErrorCode));
+        //        return -1;
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        _logger.Error(string.Format("获取远端监听端口信息时发生异常！异常信息：{0}", e.Message));
+        //        return -1;
+        //    }
+        //}
 
         private Socket TryConnectRemote(IPEndPoint remote)
         {
@@ -307,7 +378,7 @@ namespace FileTransfer.Sockets
                 if (socket == null)
                 {
                     _logger.Error(string.Format("与远端{0}:{1}尝试{2}次（最大连接次数）连接后失败！", remote.Address, remote.Port, CONNECTED_MAXCOUNT));
-                    MessageBox.Show("无法与远端进行连接！", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(string.Format("无法与远端{0}:{1}进行连接！", remote.Address, remote.Port), "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return null;
                 }
                 //设置Timeout
@@ -329,12 +400,14 @@ namespace FileTransfer.Sockets
             {
                 _logger.Error(string.Format("请求远端{0}:{1}监控文件夹信息时发生套接字异常！SocketException ErroCode:{2}", remote.Address, remote.Port, se.ErrorCode));
                 CloseSocket(socket);
+                MessageBox.Show(string.Format("请求远端{0}:{1}监控文件夹信息时发生套接字异常！SocketException ErroCode:{2}", remote.Address, remote.Port, se.ErrorCode), "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
             catch (Exception e)
             {
                 _logger.Error(string.Format("请求远端{0}:{1}监控文件夹信息时发生异常！异常信息：{2}", remote.Address, remote.Port, e.Message));
                 CloseSocket(socket);
+                MessageBox.Show(string.Format("请求远端{0}:{1}监控文件夹信息时发生异常！异常信息：{2}", remote.Address, remote.Port, e.Message), "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
         }
@@ -372,12 +445,14 @@ namespace FileTransfer.Sockets
             {
                 _logger.Error(string.Format("接收监控文件夹信息时发生套接字异常！SocketException ErroCode:{0}", se.ErrorCode));
                 CloseSocket(socket);
+                MessageBox.Show(string.Format("接收监控文件夹信息时发生套接字异常！SocketException ErroCode:{0}", se.ErrorCode), "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
             catch (Exception e)
             {
                 _logger.Error(string.Format("接收监控文件夹信息时发生异常！异常信息：{0}", e.Message));
                 CloseSocket(socket);
+                MessageBox.Show(string.Format("接收监控文件夹信息时发生异常！异常信息：{0}", e.Message), "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
         }
@@ -419,11 +494,13 @@ namespace FileTransfer.Sockets
             {
                 _logger.Error(string.Format("发送监控文件夹信息时发生套接字异常！SocketException ErroCode:{0}", se.ErrorCode));
                 CloseSocket(socket);
+                MessageBox.Show(string.Format("发送监控文件夹信息时发生套接字异常！SocketException ErroCode:{0}", se.ErrorCode), "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception e)
             {
                 _logger.Error(string.Format("发送监控文件夹信息时发生异常！异常信息：{0}", e.Message));
                 CloseSocket(socket);
+                MessageBox.Show(string.Format("发送监控文件夹信息时发生异常！异常信息：{0}", e.Message), "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -437,7 +514,7 @@ namespace FileTransfer.Sockets
                 if (socket == null)
                 {
                     _logger.Error(string.Format("与远端{0}:{1}尝试{2}次（最大连接次数）连接后失败！", remote.Address, remote.Port, CONNECTED_MAXCOUNT));
-                    MessageBox.Show("无法与远端进行连接！", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(string.Format("无法与远端{0}:{1}进行连接！", remote.Address, remote.Port), "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
                 //设置Timeout
@@ -476,31 +553,41 @@ namespace FileTransfer.Sockets
             {
                 _logger.Error(String.Format("向远端{0}:{1}发送订阅信息时发生套接字异常！SocketException ErrorCode:{2}", remote.Address, remote.Port, se.ErrorCode));
                 CloseSocket(socket);
+                MessageBox.Show(String.Format("向远端{0}:{1}发送订阅信息时发生套接字异常！SocketException ErrorCode:{2}", remote.Address, remote.Port, se.ErrorCode), "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception e)
             {
                 _logger.Error(String.Format("向远端{0}:{1}发送订阅信息时发生异常！异常：{2}", remote.Address, remote.Port, e.Message));
                 CloseSocket(socket);
+                MessageBox.Show(String.Format("向远端{0}:{1}发送订阅信息时发生异常！异常：{2}", remote.Address, remote.Port, e.Message), "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        public void SendMonitorChanges(string monitorDirectory, List<string> monitorIncrement)
+        public void SendMonitorChanges(List<MonitorChanges> increments)
         {
-            SendFiles(monitorDirectory, monitorIncrement);
-            //Task.Factory.StartNew(() => { SendFiles(monitorDirectory, monitorIncrement); });
+            //传输监控变化时，暂时关闭监控
+            FileWatcherHelper.Instance.PauseMonitor();
+            foreach (var change in increments)
+            {
+                SendFiles(change.MonitorDirectory, change.SubscribeIPs, change.FileChanges);
+            }
+            //传输完成后，恢复监控
+            FileWatcherHelper.Instance.RecoverMonitor();
         }
 
-        private void SendFiles(string monitorDirectory, List<string> monitorIncrement)
+        private void SendFiles(string monitorDirectory, List<string> subscribeIPs, List<string> monitorIncrement)
         {
             List<Socket> sockets = new List<Socket>();
             try
             {
-                List<string> subscribeIPs = SimpleIoc.Default.GetInstance<MainViewModel>().MonitorCollection.Where(m => m.MonitorDirectory == monitorDirectory).Select(m => m.SubscribeIP).ToList();
-                if (subscribeIPs == null || subscribeIPs.Count <= 0 || subscribeIPs.Any(s => string.IsNullOrEmpty(s)))
-                {
-                    _logger.Info(string.Format("监控设置中可能没有{0}的监控文件夹或者没有远端机器订阅该监控文件夹！", monitorDirectory));
-                    return;
-                }
+                //设置文件发送标志位
+                _sendingFilesFlag = true;
+                //List<string> subscribeIPs = SimpleIoc.Default.GetInstance<MainViewModel>().MonitorCollection.Where(m => m.MonitorDirectory == monitorDirectory).Select(m => m.SubscribeIP).ToList();
+                //if (subscribeIPs == null || subscribeIPs.Count <= 0 || subscribeIPs.Any(s => string.IsNullOrEmpty(s)))
+                //{
+                //    _logger.Info(string.Format("监控设置中可能没有{0}的监控文件夹或者没有远端机器订阅该监控文件夹！", monitorDirectory));
+                //    return;
+                //}
                 List<IPEndPoint> endPoints = subscribeIPs.Select(s => UtilHelper.Instance.GetIPEndPoint(s)).ToList();
                 //先建立连接
                 endPoints.ForEach(ep =>
@@ -510,7 +597,7 @@ namespace FileTransfer.Sockets
                     if (socket == null)
                     {
                         _logger.Error(string.Format("发送监控文件夹{0}内文件时与远端{1}:{2}尝试{3}次（最大连接次数）连接后失败！", monitorDirectory, ep.Address, ep.Port, CONNECTED_MAXCOUNT));
-                        MessageBox.Show("传送文件时无法与远端进行连接！", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show(string.Format("传送文件时无法与远端{0}发起连接！", ep.Address), "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return;
                     }
                     //设置Timeout
@@ -557,7 +644,7 @@ namespace FileTransfer.Sockets
                     sockets.ForEach(socket => socket.Send(sendBytes, 0, 4, SocketFlags.None));
                     sockets.ForEach(socket => socket.Send(fileNameBytes, 0, fileNameBytes.Length, SocketFlags.None));
                     //日志记录
-                    _logger.Info(string.Format("[File]{0}[FileSendState]{1}", file, @"开始发送"));
+                    subscribeIPs.ForEach(subIP => { _logger.Info(string.Format("[File]{0}[SubscribeIP]{1}[FileSendState]{2}", file, subIP, @"开始发送")); });
                     using (FileStream fs = new FileStream(file, FileMode.Open, FileAccess.Read))
                     {
                         long index = 0;
@@ -585,7 +672,7 @@ namespace FileTransfer.Sockets
                             fs.Read(buffer, 0, tempSize);
                             sockets.ForEach(socket => socket.Send(buffer, 0, tempSize, SocketFlags.None));
                             index += tempSize;
-                            Thread.Sleep(5);
+                            Thread.Sleep(1);
                         }
                         //发送进度事件
                         if (SendFileProgress != null)
@@ -594,20 +681,18 @@ namespace FileTransfer.Sockets
                         }
                     }
                     //日志记录
-                    _logger.Info(string.Format("[File]{0}[FileSendState]{1}", file, @"发送完成"));
+                    subscribeIPs.ForEach(subIP => { _logger.Info(string.Format("[File]{0}[SubscribeIP]{1}[FileSendState]{2}", file, subIP, @"完成发送")); });
                     //发送完单个文件后，根据情况选择是否删除
                     Task.Factory.StartNew(() =>
                     {
-                        if (SimpleIoc.Default.GetInstance<MainViewModel>().MonitorCollection.Where(m => m.MonitorDirectory == monitorDirectory).Any(m => m.DeleteFiles == true))
-                            IOHelper.Instance.DeleteFile(file);
+                        IOHelper.Instance.TryDeleteFile(monitorDirectory, file);
                     });
-                    Thread.Sleep(50);
+                    Thread.Sleep(10);
                 });
                 //所有文件发送完成后，根据情况选择是否删除子目录
                 Task.Factory.StartNew(() =>
                 {
-                    if (SimpleIoc.Default.GetInstance<MainViewModel>().MonitorCollection.Where(m => m.MonitorDirectory == monitorDirectory).Any(m => m.DeleteSubdirectory == true))
-                        IOHelper.Instance.DeleteDirectories(IOHelper.Instance.GetAllSubDirectories(monitorDirectory));
+                    IOHelper.Instance.TryDeleteSubdirectories(monitorDirectory);
                 });
                 //发出所有文件发送完毕的事件
                 if (CompleteSendFile != null)
@@ -623,22 +708,129 @@ namespace FileTransfer.Sockets
                         _logger.Info(string.Format("发送文件后返回的结果解析异常（值：{0}，与$DSK#不符）！", msg));
                     DisconnectSocket(socket);
                 });
+                //恢复文件发送标志位
+                _sendingFilesFlag = false;
             }
             catch (SocketException se)
             {
                 _logger.Error(String.Format("向远端发送监控文件夹内的文件信息时发生套接字异常！SocketException ErrorCode:{0}", se.ErrorCode));
                 sockets.ForEach(socket => CloseSocket(socket));
+                MessageBox.Show(String.Format("向远端发送监控文件夹内的文件信息时发生套接字异常！SocketException ErrorCode:{0}", se.ErrorCode), "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                //恢复文件发送标志位
+                _sendingFilesFlag = false;
             }
             catch (Exception e)
             {
                 _logger.Error(String.Format("向远端发送监控文件夹内的文件时发生异常！异常：{0}", e.Message));
                 sockets.ForEach(socket => CloseSocket(socket));
+                MessageBox.Show(String.Format("向远端发送监控文件夹内的文件时发生异常！异常：{0}", e.Message), "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                //恢复文件发送标志位
+                _sendingFilesFlag = false;
             }
         }
 
-        private void ReceiveAllBytes(Socket socket, byte[] buffer, int offset, int size, SocketFlags flag)
+        public void SendDeleteMonitorInfo(IPEndPoint remote, string monitorDirectory)
         {
+            Socket socket = null;
+            try
+            {
+                //尝试与远端连接
+                socket = TryConnectRemote(remote);
+                if (socket == null)
+                {
+                    _logger.Error(string.Format("与远端{0}:{1}尝试{2}次（最大连接次数）连接后失败！", remote.Address, remote.Port, CONNECTED_MAXCOUNT));
+                    MessageBox.Show(string.Format("无法与远端{0}:{1}进行连接！", remote.Address, remote.Port), "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                //设置Timeout
+                socket.SendTimeout = SOCKET_SEND_TIMEOUT;
+                socket.ReceiveTimeout = SOCKET_RECEIVE_TIMEOUT;
+                //设置消息头(占据16位)
+                byte[] sendBytes = new byte[16];
+                byte[] msgBytes = Encoding.Unicode.GetBytes(@"$DMF#");
+                msgBytes.CopyTo(sendBytes, 0);
+                //发送消息头
+                socket.Send(sendBytes, 0, 16, SocketFlags.None);
+                //发送本地IP和监控文件夹
+                byte[] directoryBytes = Encoding.Unicode.GetBytes(monitorDirectory);
+                //前32位为本地IPv4,33-36为文件夹byte数组的长度，后面为文件夹byte数组
+                sendBytes = new byte[36 + directoryBytes.Length];
+                Encoding.Unicode.GetBytes(LocalIPv4).CopyTo(sendBytes, 0);
+                BitConverter.GetBytes(directoryBytes.Length).CopyTo(sendBytes, 32);
+                directoryBytes.CopyTo(sendBytes, 36);
+                socket.Send(sendBytes, 0);
+                //接收返回信息
+                byte[] receiveBytes = new byte[16];
+                int byteRec = socket.Receive(receiveBytes, 16, SocketFlags.None);
+                string msg = Encoding.Unicode.GetString(receiveBytes, 0, 16).TrimEnd('\0');
+                if (msg != "$DSK#")
+                    _logger.Info(string.Format("发送删除监控文件夹信息后返回的结果解析异常（值：{0}，与$DSK#不符）！", msg));
+                //关闭连接
+                DisconnectSocket(socket);
+            }
+            catch (SocketException se)
+            {
+                _logger.Error(String.Format("向远端发送删除监控文件夹信息时发生套接字异常！SocketException ErrorCode:{0}", se.ErrorCode));
+                CloseSocket(socket);
+                MessageBox.Show(String.Format("向远端发送删除监控文件夹信息时发生套接字异常！SocketException ErrorCode:{0}", se.ErrorCode), "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (Exception e)
+            {
+                _logger.Error(String.Format("向远端发送删除监控文件夹信息时发生异常！SocketException ErrorCode:{0}", e.Message));
+                CloseSocket(socket);
+                MessageBox.Show(String.Format("向远端发送删除监控文件夹信息时发生异常！SocketException ErrorCode:{0}", e.Message), "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
 
+        public void SendUnregisterSubscribeInfo(IPEndPoint remote, string monitorDirectory)
+        {
+            Socket socket = null;
+            try
+            {
+                //尝试与远端连接
+                socket = TryConnectRemote(remote);
+                if (socket == null)
+                {
+                    _logger.Error(string.Format("与远端{0}:{1}尝试{2}次（最大连接次数）连接后失败！", remote.Address, remote.Port, CONNECTED_MAXCOUNT));
+                    MessageBox.Show(string.Format("无法与远端{0}:{1}进行连接！", remote.Address, remote.Port), "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                //设置Timeout
+                socket.SendTimeout = SOCKET_SEND_TIMEOUT;
+                socket.ReceiveTimeout = SOCKET_RECEIVE_TIMEOUT;
+                //设置消息头(占据16位)
+                byte[] sendBytes = new byte[16];
+                byte[] msgBytes = Encoding.Unicode.GetBytes(@"$DSF#");
+                msgBytes.CopyTo(sendBytes, 0);
+                //发送消息头
+                socket.Send(sendBytes, 0, 16, SocketFlags.None);
+                //发送本地IP(地址+端口)和监控文件夹
+                byte[] directoryBytes = Encoding.Unicode.GetBytes(monitorDirectory);
+                string ipStr = string.Format("{0}:{1}", LocalIPv4, LocalListenPort);
+                sendBytes = new byte[68 + directoryBytes.Length];
+                Encoding.Unicode.GetBytes(ipStr).CopyTo(sendBytes, 0);
+                BitConverter.GetBytes(directoryBytes.Length).CopyTo(sendBytes, 64);
+                directoryBytes.CopyTo(sendBytes, 68);
+                socket.Send(sendBytes, 0);
+                //接收返回信息
+                byte[] receiveBytes = new byte[16];
+                int byteRec = socket.Receive(receiveBytes, 16, SocketFlags.None);
+                string msg = Encoding.Unicode.GetString(receiveBytes, 0, 16).TrimEnd('\0');
+                if (msg != "$DSK#")
+                    _logger.Info(string.Format("发送注销订阅信息后返回的结果解析异常（值：{0}，与$DSK#不符）！", msg));
+                //关闭连接
+                DisconnectSocket(socket);
+            }
+            catch (SocketException se)
+            {
+                _logger.Error(String.Format("向远端发送注销订阅信息时发生套接字异常！SocketException ErrorCode:{0}", se.ErrorCode));
+                CloseSocket(socket);
+                MessageBox.Show(String.Format("向远端发送注销订阅信息时发生套接字异常！SocketException ErrorCode:{0}", se.ErrorCode), "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (Exception e)
+            {
+                _logger.Error(String.Format("向远端发送注销订阅信息时发生异常！SocketException ErrorCode:{0}", e.Message));
+                CloseSocket(socket);
+                MessageBox.Show(String.Format("向远端发送注销订阅信息时发生异常！SocketException ErrorCode:{0}", e.Message), "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void DisconnectSocket(Socket socket)

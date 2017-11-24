@@ -111,7 +111,7 @@ namespace FileTransfer.ViewModels
 
         private bool CanExecuteRequestMonitorFlodersCommand()
         {
-            return !string.IsNullOrEmpty(RemoteIP) && Regex.IsMatch(RemoteIP, @"^(((\d{1,2})|(1[0-9][0-9])|(2[0-4][0-9])|(25[0-5]))\.){3}((\d{1,2})|(1[0-9][0-9])|(2[0-4][0-9])|(25[0-5]))$") && (RemotePort >= 0 && RemotePort <= 65535);
+            return (RemotePort >= 0 && RemotePort <= 65535) && !string.IsNullOrEmpty(RemoteIP) && Regex.IsMatch(RemoteIP, @"^(((\d{1,2})|(1[0-9][0-9])|(2[0-4][0-9])|(25[0-5]))\.){3}((\d{1,2})|(1[0-9][0-9])|(2[0-4][0-9])|(25[0-5]))$");
         }
 
         private void ExecuteRequestMonitorFlodersCommand()
@@ -152,7 +152,7 @@ namespace FileTransfer.ViewModels
             string remoteAddress = string.Format("{0}:{1}", RemoteIP, RemotePort);
             string monitorDirectory = RemoteMonitorFloders.Where(m => m.IsSelected == true).ElementAt(0).RemoteMonitorFloder;
             string acceptDirectiory = AcceptFilePath;
-            SubscribeModel subscribe = new SubscribeModel() { MonitorIP = RemoteIP, MonitorDirectory = monitorDirectory, AcceptDirectory = acceptDirectiory };
+            SubscribeModel subscribe = new SubscribeModel() { MonitorIP = RemoteIP, MonitorListenPort = RemotePort, MonitorDirectory = monitorDirectory, AcceptDirectory = acceptDirectiory };
             if (SimpleIoc.Default.GetInstance<MainViewModel>().SubscribeCollection.FirstOrDefault(s => s.MonitorIP == remoteAddress && s.MonitorDirectory == monitorDirectory && s.AcceptDirectory == acceptDirectiory) != null)
             {
                 MessageBox.Show("接受配置中已有相同项！", "提醒", MessageBoxButtons.OK, MessageBoxIcon.Information);

@@ -1,4 +1,5 @@
-﻿using FileTransfer.ViewModels;
+﻿using FileTransfer.Sockets;
+using FileTransfer.ViewModels;
 using FileTransfer.Views;
 using GalaSoft.MvvmLight.Ioc;
 using GalaSoft.MvvmLight.Messaging;
@@ -17,6 +18,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Forms;
 
 namespace FileTransfer
 {
@@ -27,6 +29,7 @@ namespace FileTransfer
     {
         #region 变量
         private SubscribeView _subscribeView;
+        private LogsQueryView _logsQueryView;
         #endregion
 
         public MainWindow()
@@ -59,8 +62,27 @@ namespace FileTransfer
                     if (_subscribeView != null)
                         _subscribeView.Close();
                     break;
+                case "ShowLogsQueryView":
+                    if (_logsQueryView == null || (new WindowInteropHelper(_logsQueryView)).Handle == IntPtr.Zero)
+                        _logsQueryView = new LogsQueryView(this);
+                    _logsQueryView.ShowDialog();
+                    break;
+                case "CloseLogsQueryView":
+                    if (_logsQueryView != null)
+                        _logsQueryView.Close();
+                    break;
                 default:
                     break;
+            }
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            //如果正在接发数据，则阻止程序关闭
+            if (SynchronousSocketManager.Instance.SendingFilesFlag || SynchronousSocketManager.Instance.ReceivingFlag)
+            {
+                System.Windows.Forms.MessageBox.Show("当前程序正在接发数据！", "提醒", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                e.Cancel = true;
             }
         }
     }

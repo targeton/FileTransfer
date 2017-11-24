@@ -14,6 +14,7 @@ namespace FileTransfer.ViewModels
         {
             SimpleIoc.Default.Register<MainViewModel>();
             SimpleIoc.Default.Register<SubscribeViewModel>();
+            SimpleIoc.Default.Register<LogsQueryViewModel>();
         }
         #endregion
 
@@ -31,6 +32,14 @@ namespace FileTransfer.ViewModels
             get 
             {
                 return SimpleIoc.Default.GetInstance<SubscribeViewModel>();
+            }
+        }
+
+        public LogsQueryViewModel LogsQueryViewModel
+        {
+            get 
+            {
+                return SimpleIoc.Default.GetInstance<LogsQueryViewModel>();
             }
         }
         #endregion

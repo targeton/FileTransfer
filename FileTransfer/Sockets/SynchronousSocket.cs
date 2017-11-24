@@ -51,7 +51,7 @@ namespace FileTransfer.Sockets
                     Socket connectedSocket = _listenSocket.Accept();
                     Thread.Sleep(CONNECTED_WAITTIME);
                     if (SocketConnected != null)
-                        SocketConnected(connectedSocket);
+                        Task.Factory.StartNew(() => { SocketConnected(connectedSocket); });
                 }
             }
             catch (SocketException se)

@@ -36,7 +36,40 @@
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Transfer.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
+    <Reference Include="DevExpress.Data.v13.2, Version=13.2.8.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Dll\DevExpress.Data.v13.2.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="DevExpress.Utils.v13.2, Version=13.2.8.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Dll\DevExpress.Utils.v13.2.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Core.v13.2, Version=13.2.8.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Dll\DevExpress.Xpf.Core.v13.2.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Grid.v13.2, Version=13.2.8.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Dll\DevExpress.Xpf.Grid.v13.2.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Grid.v13.2.Core, Version=13.2.8.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Dll\DevExpress.Xpf.Grid.v13.2.Core.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Mvvm.v13.2, Version=13.2.8.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Dll\DevExpress.Xpf.Mvvm.v13.2.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="GalaSoft.MvvmLight.Extras.WPF4, Version=4.1.27.22692, Culture=neutral, PublicKeyToken=1673db7d5906b0ad, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Dll\GalaSoft.MvvmLight.Extras.WPF4.dll</HintPath>
@@ -87,16 +120,23 @@
     <Compile Include="Converters\MonitorFlagConverter.cs" />
     <Compile Include="Converters\SetPortConverter.cs" />
     <Compile Include="FileWatcher\IOHelper.cs" />
+    <Compile Include="FileWatcher\MonitorChanges.cs" />
     <Compile Include="Models\MonitorModel.cs" />
+    <Compile Include="Models\ReceiveLogModel.cs" />
+    <Compile Include="Models\SendLogModel.cs" />
     <Compile Include="Models\SubscribeModel.cs" />
     <Compile Include="Sockets\SynchronousSocket.cs" />
     <Compile Include="Sockets\SynchronousSocketManager.cs" />
     <Compile Include="Utils\UtilHelper.cs" />
     <Compile Include="ValidationRules\IPAdressCheckRule.cs" />
     <Compile Include="ValidationRules\PosIntCheckRule.cs" />
+    <Compile Include="ViewModels\LogsQueryViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="ViewModels\SubscribeViewModel.cs" />
     <Compile Include="ViewModels\ViewModelLocator.cs" />
+    <Compile Include="Views\LogsQueryView.xaml.cs">
+      <DependentUpon>LogsQueryView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\SubscribeView.xaml.cs">
       <DependentUpon>SubscribeView.xaml</DependentUpon>
     </Compile>
@@ -113,6 +153,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Views\LogsQueryView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\SubscribeView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -136,7 +180,9 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -145,6 +191,24 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <Content Include="Dll\DevExpress.Data.v13.2.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Dll\DevExpress.Utils.v13.2.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Dll\DevExpress.Xpf.Core.v13.2.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Dll\DevExpress.Xpf.Grid.v13.2.Core.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Dll\DevExpress.Xpf.Grid.v13.2.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Dll\DevExpress.Xpf.Mvvm.v13.2.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Dll\log4net.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -169,6 +233,8 @@
     <Content Include="Dll\System.Windows.Interactivity.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Resources\Transfer.ico" />
+    <Resource Include="Transfer.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
