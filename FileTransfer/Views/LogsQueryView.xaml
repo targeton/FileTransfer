@@ -22,7 +22,7 @@
     <Grid>
         <TabControl Margin="2">
             <TabItem Header="发送日志">
-                <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="5" Margin="3">
+                <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="5">
                     <Grid>
                         <dxg:GridControl ItemsSource="{Binding Source={StaticResource Locator}, Path=LogsQueryViewModel.SendLogs}">
                             <dxg:GridControl.Columns>
@@ -47,7 +47,7 @@
                 </Border>
             </TabItem>
             <TabItem Header="接收日志">
-                <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="5" Margin="3">
+                <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="5">
                     <Grid>
                         <dxg:GridControl ItemsSource="{Binding Source={StaticResource Locator}, Path=LogsQueryViewModel.ReceiveLogs}">
                             <dxg:GridControl.Columns>
@@ -62,7 +62,7 @@
                                 <dxg:GridColumn Header="接收状态" MinWidth="60" FieldName="ReceiveFileState"></dxg:GridColumn>
                             </dxg:GridControl.Columns>
                             <dxg:GridControl.TotalSummary>
-                                <dxg:GridSummaryItem FieldName="SendFileName" SummaryType="Count"/>
+                                <dxg:GridSummaryItem FieldName="ReceiveFileName" SummaryType="Count"/>
                                 <dxg:GridSummaryItem SummaryType="Count" Alignment="Right"/>
                             </dxg:GridControl.TotalSummary>
                             <dxg:GridControl.View>
@@ -78,6 +78,53 @@
                                 <DataGridTextColumn Header="接收状态" Width="*" Binding="{Binding Path=ReceiveFileState}"></DataGridTextColumn>
                             </DataGrid.Columns>
                         </DataGrid>-->
+                    </Grid>
+                </Border>
+            </TabItem>
+            <TabItem Header="监控日志">
+                <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="5">
+                    <Grid>
+                        <dxg:GridControl ItemsSource="{Binding Source={StaticResource Locator}, Path=LogsQueryViewModel.MonitorLogs}">
+                            <dxg:GridControl.Columns>
+                                <dxg:GridColumn Header="监控文件时间" MinWidth="60" Width="200" FieldName="MonitorChangedTime">
+                                    <dxg:GridColumn.EditSettings>
+                                        <dxe:DateEditSettings DisplayFormat="yyyy-MM-dd HH:mm:ss"/>
+                                    </dxg:GridColumn.EditSettings>
+                                </dxg:GridColumn>
+                                <dxg:GridColumn Header="监控文件名" MinWidth="60" Width="700" FieldName="MonitorChangedFile"></dxg:GridColumn>
+                            </dxg:GridControl.Columns>
+                            <dxg:GridControl.TotalSummary>
+                                <dxg:GridSummaryItem FieldName="MonitorChangedTime" SummaryType="Count"/>
+                                <dxg:GridSummaryItem SummaryType="Count" Alignment="Right"/>
+                            </dxg:GridControl.TotalSummary>
+                            <dxg:GridControl.View>
+                                <dxg:TableView NavigationStyle="Row" AutoWidth="True" ShowFixedTotalSummary="True" ShowSearchPanelMode="Always" ShowFilterPanelMode="ShowAlways" ShowSearchPanelCloseButton="False" ShowGroupPanel="False"/>
+                            </dxg:GridControl.View>
+                        </dxg:GridControl>
+                    </Grid>
+                </Border>
+            </TabItem>
+            <TabItem Header="错误日志">
+                <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="5">
+                    <Grid>
+                        <dxg:GridControl ItemsSource="{Binding Source={StaticResource Locator}, Path=LogsQueryViewModel.ErrorLogs}">
+                            <dxg:GridControl.Columns>
+                                <dxg:GridColumn Header="异常时间" MinWidth="60" Width="200" FieldName="ErrorOccurTime">
+                                    <dxg:GridColumn.EditSettings>
+                                        <dxe:DateEditSettings DisplayFormat="yyyy-MM-dd HH:mm:ss"/>
+                                    </dxg:GridColumn.EditSettings>
+                                </dxg:GridColumn>
+                                <dxg:GridColumn Header="异常类型" MinWidth="60" Width="100" FieldName="ErrorFlag"></dxg:GridColumn>
+                                <dxg:GridColumn Header="异常内容" MinWidth="60" Width="800" FieldName="ErrorContent"></dxg:GridColumn>
+                            </dxg:GridControl.Columns>
+                            <dxg:GridControl.TotalSummary>
+                                <dxg:GridSummaryItem FieldName="ErrorOccurTime" SummaryType="Count"/>
+                                <dxg:GridSummaryItem SummaryType="Count" Alignment="Right"/>
+                            </dxg:GridControl.TotalSummary>
+                            <dxg:GridControl.View>
+                                <dxg:TableView NavigationStyle="Row" AutoWidth="True" ShowFixedTotalSummary="True" ShowSearchPanelMode="Always" ShowFilterPanelMode="ShowAlways" ShowSearchPanelCloseButton="False" ShowGroupPanel="False"/>
+                            </dxg:GridControl.View>
+                        </dxg:GridControl>
                     </Grid>
                 </Border>
             </TabItem>

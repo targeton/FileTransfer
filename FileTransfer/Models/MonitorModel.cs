@@ -1,6 +1,7 @@
 ﻿using GalaSoft.MvvmLight;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,17 +24,17 @@ namespace FileTransfer.Models
             }
         }
 
-        private string _subscribeIP;
-        [XmlAttribute("SubscribeIP")]
-        public string SubscribeIP
-        {
-            get { return _subscribeIP; }
-            set
-            {
-                _subscribeIP = value;
-                RaisePropertyChanged("SubscribeIP");
-            }
-        }
+        //private string _subscribeIP;
+        //[XmlAttribute("SubscribeIP")]
+        //public string SubscribeIP
+        //{
+        //    get { return _subscribeIP; }
+        //    set
+        //    {
+        //        _subscribeIP = value;
+        //        RaisePropertyChanged("SubscribeIP");
+        //    }
+        //}
 
         private bool _deleteFiles;
         [XmlAttribute("DeleteFiles")]
@@ -56,6 +57,18 @@ namespace FileTransfer.Models
             {
                 _deleteSubdirecory = value;
                 RaisePropertyChanged("DeleteSubdirectory");
+            }
+        }
+
+        private ObservableCollection<SubscribeInfoModel> _subscribeInfos;
+        [XmlArray("SubscribeInfos"), XmlArrayItem("SubscribeInfo")]
+        public ObservableCollection<SubscribeInfoModel> SubscribeInfos
+        {
+            get { return _subscribeInfos ; }
+            set
+            {
+                _subscribeInfos = value;
+                RaisePropertyChanged("SubscribeInfos");
             }
         }
 

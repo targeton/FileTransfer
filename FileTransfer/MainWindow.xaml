@@ -5,13 +5,51 @@
         xmlns:converter="clr-namespace:FileTransfer.Converters"
         xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
         xmlns:rule="clr-namespace:FileTransfer.ValidationRules"
-        Title="文件监控传输" Height="560" Width="1000" Loaded="Window_Loaded" Closed="Window_Closed" Closing="Window_Closing">
+        Title="文件监控传输" Height="560" Width="1200" Loaded="Window_Loaded" Closed="Window_Closed" Closing="Window_Closing">
     <Window.Resources>
         <vm:ViewModelLocator x:Key="Locator"></vm:ViewModelLocator>
         <converter:MonitorFlagConverter x:Key="MonitorFlagConverter"></converter:MonitorFlagConverter>
         <converter:SetPortConverter x:Key="SetPortConverter"></converter:SetPortConverter>
+        <converter:ConnectInfoConverter x:Key="ConnectInfoConverter"></converter:ConnectInfoConverter>
+        <converter:ConnectBackgroundConverter x:Key="ConnectBackgroundConverter"></converter:ConnectBackgroundConverter>
+        <converter:SubscribeSummaryConverter x:Key="SubscribeSummaryConverter"></converter:SubscribeSummaryConverter>
+        <converter:SubscribeNetworkConverter x:Key="SubscribeNetworkConverter"></converter:SubscribeNetworkConverter>
+        <converter:VisibilityToNullableBooleanConverter x:Key="VisibilityToNullableBooleanConverter"></converter:VisibilityToNullableBooleanConverter>
+        <converter:BoolInverseConverter x:Key="BoolInverseConverter"></converter:BoolInverseConverter>
+        <converter:BoolInverseVisibilityConverter x:Key="BoolInverseVisibilityConverter"></converter:BoolInverseVisibilityConverter>
         <rule:PosIntCheckRule x:Key="PosIntCheckRule"></rule:PosIntCheckRule>
-        <Style TargetType="{x:Type DataGridRow}">
+        <Style x:Key="RowHeaderCheckBox" TargetType="{x:Type CheckBox}">
+            <Setter Property="VerticalAlignment" Value="Center"></Setter>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type CheckBox}">
+                        <Image x:Name="ImageToggleButton" HorizontalAlignment="{TemplateBinding HorizontalAlignment}" VerticalAlignment="{TemplateBinding VerticalAlignment}"
+                               Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" Stretch="Fill" Source="pack://application:,,,/FileTransfer;component/Resources/列表-收起.png"></Image>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="ImageToggleButton" Property="Source" Value="pack://application:,,,/FileTransfer;component/Resources/列表-展开.png"></Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="{x:Type DataGridRowHeader}">
+            <Setter Property="Width" Value="42"></Setter>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type DataGridRowHeader}">
+                        <Border Padding="2" BorderThickness="0,0,1,0" BorderBrush="Black">
+                            <CheckBox Width="12" Height="12" Style="{StaticResource RowHeaderCheckBox}"
+                                          IsChecked="{Binding Path=DetailsVisibility, RelativeSource={RelativeSource AncestorType={x:Type DataGridRow}}, Converter={StaticResource VisibilityToNullableBooleanConverter}}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!--<Style x:Key="DataGridRowStyle" TargetType="{x:Type DataGridRow}">
+            <Setter Property="DetailsVisibility" Value="Collapsed"></Setter>
             <Setter Property="ContextMenu">
                 <Setter.Value>
                     <ContextMenu>
@@ -20,15 +58,49 @@
                     </ContextMenu>
                 </Setter.Value>
             </Setter>
-        </Style>
+        </Style>-->
         <Style TargetType="{x:Type DataGrid}">
             <Setter Property="CanUserAddRows" Value="False"></Setter>
             <Setter Property="CanUserDeleteRows" Value="False"></Setter>
             <Setter Property="AutoGenerateColumns" Value="False"></Setter>
             <Setter Property="Margin" Value="5"></Setter>
             <Setter Property="RowHeaderWidth" Value="0"></Setter>
+            <Setter Property="HeadersVisibility" Value="Column"></Setter>
             <Setter Property="SelectionMode" Value="Single"></Setter>
         </Style>
+        <DataTemplate x:Key="MonitorDataGridRowDetail">
+            <Border BorderThickness="1" BorderBrush="LightGray" CornerRadius="5" Margin="5">
+                <DataGrid Margin="5" ItemsSource="{Binding Path=SubscribeInfos}">
+                    <DataGrid.RowStyle>
+                        <Style TargetType="{x:Type DataGridRow}">
+                            <Setter Property="ContextMenu" Value="{x:Null}"></Setter>
+                        </Style>
+                    </DataGrid.RowStyle>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="订阅端IP" IsReadOnly="True" Binding="{Binding Path=SubscribeIP}" Width=" 250"></DataGridTextColumn>
+                        <DataGridTemplateColumn Header="网络连接状况" Width="200">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border Background="{Binding Path=CanConnect, Converter={StaticResource ConnectBackgroundConverter}}">
+                                        <TextBlock Text="{Binding Path=CanConnect, Converter={StaticResource ConnectInfoConverter}}" VerticalAlignment="Center"></TextBlock>
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="发送进度" Width="200" IsReadOnly="True">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="3,1,3,1">
+                                        <ProgressBar Value="{Binding Path=TransferPercent}" Minimum="0.0" Maximum="1.0"></ProgressBar>
+                                    </Grid>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="发送文件名" Width="500" IsReadOnly="True" Binding="{Binding Path=TransferFileName}"></DataGridTextColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+        </DataTemplate>
     </Window.Resources>
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Loaded">
@@ -52,13 +124,38 @@
                             <Button Content="设置监控" Width="100" Height="25" Margin="3" Command="{Binding Path=MainViewModel.AddMonitorCommand, Source={StaticResource Locator}}" IsEnabled="{Binding Source={StaticResource Locator}, Path=MainViewModel.MonitorFlag}"></Button>
                             <Button Content="查看日志" Width="100" Height="25" Margin="3" Command="{Binding Path=MainViewModel.QueryLogsCommand, Source={StaticResource Locator}}"></Button>
                         </StackPanel>
-                        <DataGrid Grid.Row="1" ItemsSource="{Binding Path=MainViewModel.MonitorCollection, Source={StaticResource Locator}}" IsEnabled="{Binding Source={StaticResource Locator}, Path=MainViewModel.MonitorFlag}">
+                        <Border BorderBrush="Gray" BorderThickness="1" HorizontalAlignment="Right" Margin="3" CornerRadius="5">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <TextBlock Text="发送异常转存路径：" VerticalAlignment="Center" Margin="10,0,0,0"></TextBlock>
+                                <TextBox Width="500" IsReadOnly="True" Height="25" Text="{Binding Source={StaticResource Locator}, Path=MainViewModel.SendExceptionSavePath}"></TextBox>
+                                <Button Content="更改" Width="100" Height="25" Margin="10,0,10,0" Command="{Binding Path=MainViewModel.SetSendExceptionCommand, Source={StaticResource Locator}}"></Button>
+                            </StackPanel>
+                        </Border>
+                        <DataGrid Grid.Row="1" ItemsSource="{Binding Path=MainViewModel.MonitorCollection, Source={StaticResource Locator}}" RowDetailsTemplate="{StaticResource MonitorDataGridRowDetail}"
+                                  RowHeaderWidth="20" HeadersVisibility="All">
+                            <DataGrid.RowStyle>
+                                <Style TargetType="{x:Type DataGridRow}">
+                                    <Setter Property="DetailsVisibility" Value="Collapsed"></Setter>
+                                    <Setter Property="ContextMenu">
+                                        <Setter.Value>
+                                            <ContextMenu Visibility="{Binding Source={StaticResource Locator}, Path=MainViewModel.MonitorFlag,Converter={StaticResource BoolInverseVisibilityConverter}}">
+                                                <MenuItem Header="删除" Command="{Binding Path=MainViewModel.DeleteMonitorSettingCommand, Source={StaticResource Locator}}"
+                                                          CommandParameter="{Binding Path=PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"></MenuItem>
+                                            </ContextMenu>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </DataGrid.RowStyle>
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="监控文件夹" IsReadOnly="True" Binding="{Binding Path=MonitorDirectory}" Width="250"></DataGridTextColumn>
-                                <DataGridTextColumn Header="订阅者IP" IsReadOnly="True" Binding="{Binding Path=SubscribeIP}" Width="200"></DataGridTextColumn>
-                                <DataGridCheckBoxColumn Header="是否删除文件" Binding="{Binding Path=DeleteFiles}"></DataGridCheckBoxColumn>
-                                <DataGridCheckBoxColumn Header="是否删除子文件夹" Binding="{Binding Path=DeleteSubdirectory}"></DataGridCheckBoxColumn>
-                                <DataGridTemplateColumn Header="发送进度" Width="150" IsReadOnly="True">
+                                <!--<DataGridTextColumn Header="订阅者IP" IsReadOnly="True" Binding="{Binding Path=SubscribeIP}" Width="200"></DataGridTextColumn>-->
+                                <DataGridCheckBoxColumn Header="是否删除文件" Binding="{Binding Path=DeleteFiles}"
+                                                        IsReadOnly="{Binding Source={StaticResource Locator}, Path=MainViewModel.MonitorFlag, Converter={StaticResource BoolInverseConverter}}"></DataGridCheckBoxColumn>
+                                <DataGridCheckBoxColumn Header="是否删除子文件夹" Binding="{Binding Path=DeleteSubdirectory}"
+                                                        IsReadOnly="{Binding Source={StaticResource Locator}, Path=MainViewModel.MonitorFlag, Converter={StaticResource BoolInverseConverter}}"></DataGridCheckBoxColumn>
+                                <DataGridTextColumn Header="订阅概述" Binding="{Binding Path=SubscribeInfos, Converter={StaticResource SubscribeSummaryConverter}}" Width="200" IsReadOnly="True"></DataGridTextColumn>
+                                <DataGridTextColumn Header="网络简况" Binding="{Binding Path=SubscribeInfos, Converter={StaticResource SubscribeNetworkConverter}}" Width="*" IsReadOnly="True"></DataGridTextColumn>
+                                <!--<DataGridTemplateColumn Header="发送进度" Width="150" IsReadOnly="True">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <Grid Margin="3,1,3,1">
@@ -67,13 +164,13 @@
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
-                                <DataGridTextColumn Header="发送文件名" IsReadOnly="True" Binding="{Binding Path=TransferFileName}" Width="*"></DataGridTextColumn>
+                                <DataGridTextColumn Header="发送文件名" IsReadOnly="True" Binding="{Binding Path=TransferFileName}" Width="*"></DataGridTextColumn>-->
                             </DataGrid.Columns>
                         </DataGrid>
                         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,3,5,3">
                             <TextBlock Text="{Binding Source={StaticResource Locator}, Path=MainViewModel.NotifyText}"></TextBlock>
                         </StackPanel>
-                        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5,3,5,3"> 
+                        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5,3,5,3">
                             <StackPanel Orientation="Horizontal" Margin="5,0,5,0">
                                 <TextBlock Text="监控扫描周期:" VerticalAlignment="Center"></TextBlock>
                                 <TextBox Width="50" Height="25" Text="{Binding Source={StaticResource Locator}, Path=MainViewModel.ScanPeriod}" InputMethod.IsInputMethodEnabled="False"
@@ -100,6 +197,18 @@
                             <Button Content="查看日志" Width="100" Height="25" Margin="3" Command="{Binding Path=MainViewModel.QueryLogsCommand, Source={StaticResource Locator}}"></Button>
                         </StackPanel>
                         <DataGrid Grid.Row="1" ItemsSource="{Binding Path=MainViewModel.SubscribeCollection, Source={StaticResource Locator}}">
+                            <DataGrid.RowStyle>
+                                <Style TargetType="{x:Type DataGridRow}">
+                                    <Setter Property="ContextMenu">
+                                        <Setter.Value>
+                                            <ContextMenu>
+                                                <MenuItem Header="删除" Command="{Binding Path=MainViewModel.DeleteSubscribeSettingCommand, Source={StaticResource Locator}}"
+                                                          CommandParameter="{Binding Path=PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"></MenuItem>
+                                            </ContextMenu>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </DataGrid.RowStyle>
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="监控者IP" IsReadOnly="True" Binding="{Binding Path=MonitorIP}" Width="200"></DataGridTextColumn>
                                 <DataGridTextColumn Header="监控文件夹" IsReadOnly="True" Binding="{Binding Path=MonitorDirectory}" Width="250"></DataGridTextColumn>
@@ -116,6 +225,9 @@
                                 <DataGridTextColumn Header="接收文件名" IsReadOnly="True" Binding="{Binding Path=AcceptFileName}" Width="*"></DataGridTextColumn>
                             </DataGrid.Columns>
                         </DataGrid>
+                        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,3,5,3">
+                            <TextBlock Text="{Binding Source={StaticResource Locator}, Path=MainViewModel.NotifyText}"></TextBlock>
+                        </StackPanel>
                         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5,3,5,3">
                             <StackPanel Orientation="Horizontal" Margin="5,0,5,0">
                                 <TextBlock Text="接收端口：" VerticalAlignment="Center"></TextBlock>

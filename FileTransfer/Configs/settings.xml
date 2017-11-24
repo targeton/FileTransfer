@@ -1,10 +1,12 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Settings>
   <MonitorSettings>
-    <MonitorSetting MonitorDirectory="" SubscribeIP="" DeleteFiles="" DeleteSubdirectory="" ></MonitorSetting>
+    
   </MonitorSettings>
   <SubscribeSettings>
-    <SubscribeSetting MonitorIP="" MonitorDirectory="" AcceptDirectory=""></SubscribeSetting>
+    
   </SubscribeSettings>
-  <ServiceSetting ListenPort=""></ServiceSetting>
+  <ListenPort>8080</ListenPort>
+  <ScanPeriod>1</ScanPeriod>
+  <IncompleteSendSavePath>C:\IncompleteSendFiles</IncompleteSendSavePath>
 </Settings>

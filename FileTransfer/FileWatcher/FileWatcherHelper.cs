@@ -40,10 +40,10 @@ namespace FileTransfer.FileWatcher
         #endregion
 
         #region 方法
-        public void StartMoniter()
+        public void StartMoniter(bool ignore = true)
         {
             //初始化监控文件夹的文件信息
-            InitialMonitorChanges();
+            InitialMonitorChanges(ignore);
             //初始化定时器并启动
             _timer = new Timer();
             _timer.Interval = SimpleIoc.Default.GetInstance<MainViewModel>().ScanPeriod * 1000;
@@ -52,7 +52,7 @@ namespace FileTransfer.FileWatcher
             _logger.Info(string.Format("启动监控文件夹的扫描定时器，定时刷新时间间隔为{0}毫秒", _timer.Interval));
         }
 
-        private void InitialMonitorChanges()
+        private void InitialMonitorChanges(bool ignore = true)
         {
             var monitors = SimpleIoc.Default.GetInstance<MainViewModel>().MonitorCollection.ToList();
             List<string> monitorDirectories = monitors.Select(m => m.MonitorDirectory).Distinct().ToList();
@@ -63,11 +63,18 @@ namespace FileTransfer.FileWatcher
                 bool deleteFile = monitors.Where(m => m.MonitorDirectory == monitor).Any(m => m.DeleteFiles == true);
                 bool deleteSubdirectory = monitors.Where(m => m.MonitorDirectory == monitor).Any(m => m.DeleteSubdirectory == true);
                 IOHelper.Instance.SetDeleteSetting(monitor, deleteFile, deleteSubdirectory);
-                //获取监控文件夹内的初始文件状态
-                List<string> files = IOHelper.Instance.GetAllFiles(monitor);
-                if (files == null || files.Count <= 0)
-                    files = new List<string>();
-                _monitorDirectoryChanges.Add(monitor, files);
+                //获取监控文件夹内的初始文件状态(根据ignore决定是否监控原有文件，默认不监控)
+                if (ignore)
+                {
+                    List<string> files = IOHelper.Instance.GetAllFiles(monitor);
+                    if (files == null || files.Count <= 0)
+                        files = new List<string>();
+                    _monitorDirectoryChanges.Add(monitor, files);
+                }
+                else
+                {
+                    _monitorDirectoryChanges.Add(monitor, new List<string>());
+                }
             }
         }
 
@@ -91,10 +98,6 @@ namespace FileTransfer.FileWatcher
             {
                 if (!IOHelper.Instance.HasMonitorDirectory(monitorDirectory))
                     continue;
-                //获取当前监控文件夹是否有订阅者
-                List<string> subscribeIPs = SimpleIoc.Default.GetInstance<MainViewModel>().MonitorCollection.Where(m => !string.IsNullOrEmpty(m.SubscribeIP)).Where(m => m.MonitorDirectory == monitorDirectory).Select(m => m.SubscribeIP).ToList();
-                //如果没有订阅者就继续循环（不用检测文件夹内的文件变化）
-                if (subscribeIPs == null || subscribeIPs.Count <= 0) continue;
                 //获取现有文件信息
                 List<string> nowFiles = IOHelper.Instance.GetAllFiles(monitorDirectory);
                 //获取原有文件信息
@@ -117,7 +120,15 @@ namespace FileTransfer.FileWatcher
                 if (incrementFiles == null || incrementFiles.Count <= 0)
                     continue;
                 _logger.Info(string.Format("监控文件夹{0}内新增{1}个文件", monitorDirectory, incrementFiles.Count));
-                changes.Add(new MonitorChanges() { MonitorDirectory = monitorDirectory, SubscribeIPs = subscribeIPs, FileChanges = incrementFiles });
+                foreach (var file in incrementFiles)
+                {
+                    _logger.Info(string.Format("[MonitorFile]{0}", file));
+                }
+                //获取当前监控文件夹是否有订阅者(有订阅则记录文件夹内改变)
+                var monitor = SimpleIoc.Default.GetInstance<MainViewModel>().MonitorCollection.FirstOrDefault(m => m.MonitorDirectory == monitorDirectory);
+                if (monitor == null) continue;
+                if (monitor.SubscribeInfos == null || monitor.SubscribeInfos.Count == 0) continue;
+                changes.Add(new MonitorChanges() { MonitorDirectory = monitorDirectory, FileChanges = incrementFiles });
             }
             RecoverMonitor();
             if (changes == null || changes.Count <= 0) return;
@@ -133,23 +144,11 @@ namespace FileTransfer.FileWatcher
                 { }
                 return true;
             }
-            catch (Exception )
+            catch (Exception)
             {
                 return false;
             }
         }
-
-        //public void AddNewMonitor(string monitorDirectory)
-        //{
-        //    _timer.Stop();
-        //    if (!_monitorDirectoryChanges.Keys.Contains(monitorDirectory))
-        //    {
-        //        List<string> files = IOHelper.Instance.GetAllFiles(monitorDirectory);
-        //        _monitorDirectoryChanges.Add(monitorDirectory, files);
-        //        _logger.Info(string.Format("新增监控文件夹{0}(已被订阅)", monitorDirectory));
-        //    }
-        //    _timer.Start();
-        //}
 
         public void PauseMonitor()
         {

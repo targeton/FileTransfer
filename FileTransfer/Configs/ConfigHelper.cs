@@ -57,6 +57,13 @@ namespace FileTransfer.Configs
             get { return _scanPerid; }
         }
 
+        private string _incompleteSendSavePath;
+
+        public string IncompleteSendSavePath
+        {
+            get { return _incompleteSendSavePath; }
+        }
+
         #endregion
 
         #region 构造函数
@@ -96,7 +103,6 @@ namespace FileTransfer.Configs
             try
             {
                 XmlSerializer serializer = new XmlSerializer(typeof(ConfigClass));
-
             }
             catch (Exception)
             {
@@ -148,13 +154,14 @@ namespace FileTransfer.Configs
             }
         }
 
-        public void SaveSettings(List<MonitorModel> monitors, List<SubscribeModel> subscribes, int port, int scanPeriod)
+        public void SaveSettings(List<MonitorModel> monitors, List<SubscribeModel> subscribes, int port, int scanPeriod, string savePath)
         {
             _monitorSettings = monitors;
             _subscribeSettings = subscribes;
             _listenPort = port;
             _scanPerid = scanPeriod;
-            var config = new ConfigClass(monitors, subscribes, port, scanPeriod);
+            _incompleteSendSavePath = savePath;
+            var config = new ConfigClass(monitors, subscribes, port, scanPeriod, savePath);
             ExportXml(_settingPath, config);
         }
 
@@ -163,12 +170,14 @@ namespace FileTransfer.Configs
             ConfigClass config = ImportXml(_settingPath) as ConfigClass;
             if (config == null)
             {
-                _logger.Info("加载配置文件转换异常！采用默认配置。");
+                _logger.Warn("加载配置文件转换异常！采用默认配置。");
                 _monitorSettings = new List<MonitorModel>();
                 _subscribeSettings = new List<SubscribeModel>();
                 _listenPort = 8888;
                 _scanPerid = 5;
-                return;
+                _incompleteSendSavePath = @"C:\IncompleteSendFiles";
+                if (!Directory.Exists(_incompleteSendSavePath))
+                    Directory.CreateDirectory(_incompleteSendSavePath);
             }
             else
             {
@@ -176,6 +185,12 @@ namespace FileTransfer.Configs
                 _subscribeSettings = config.SubscribeSettings;
                 _listenPort = config.ListenPort;
                 _scanPerid = config.ScanPeriod;
+                if (Directory.Exists(config.IncompleteSendSavePath))
+                    _incompleteSendSavePath = config.IncompleteSendSavePath;
+                else
+                    _incompleteSendSavePath = @"C:\IncompleteSendFiles";
+                if (!Directory.Exists(_incompleteSendSavePath))
+                    Directory.CreateDirectory(_incompleteSendSavePath);
             }
         }
 

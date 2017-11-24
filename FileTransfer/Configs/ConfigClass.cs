@@ -42,18 +42,28 @@ namespace FileTransfer.Configs
             set { _scanPeriod = value; }
         }
 
+        private string _incompleteSendSavePath;
+        [XmlElement("IncompleteSendSavePath")]
+        public string IncompleteSendSavePath
+        {
+            get { return _incompleteSendSavePath; }
+            set { _incompleteSendSavePath = value; }
+        }
+
+
         #endregion
 
         #region 构造函数
         public ConfigClass()
         { }
 
-        public ConfigClass(List<MonitorModel> monitors, List<SubscribeModel> subscribes, int listenPort, int scanPeriod)
+        public ConfigClass(List<MonitorModel> monitors, List<SubscribeModel> subscribes, int listenPort, int scanPeriod, string savePath)
         {
             MonitorSettings = monitors;
             SubscribeSettings = subscribes;
             ListenPort = listenPort;
             ScanPeriod = scanPeriod;
+            IncompleteSendSavePath = savePath;
         }
         #endregion
     }

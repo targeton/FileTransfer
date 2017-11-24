@@ -20,6 +20,7 @@ namespace FileTransfer.ViewModels
     {
         #region 变量
         private static ILog _logger = LogManager.GetLogger(typeof(MainViewModel));
+        private System.Timers.Timer _checkConnectTimer;
         #endregion
 
         #region 属性
@@ -95,7 +96,6 @@ namespace FileTransfer.ViewModels
             }
         }
 
-
         private string _notifyText;
 
         public string NotifyText
@@ -108,17 +108,32 @@ namespace FileTransfer.ViewModels
             }
         }
 
+        private string _sendExceptionSavePath;
+
+        public string SendExceptionSavePath
+        {
+            get { return _sendExceptionSavePath; }
+            set
+            {
+                _sendExceptionSavePath = value;
+                RaisePropertyChanged("SendExceptionSavePath");
+            }
+        }
+
+
         #endregion
 
         #region 命令
         public RelayCommand<bool> ControlMonitorCommand { get; set; }
         public RelayCommand AddMonitorCommand { get; set; }
-        public RelayCommand<object> DeleteSettingCommand { get; set; }
+        public RelayCommand<object> DeleteMonitorSettingCommand { get; set; }
+        public RelayCommand<object> DeleteSubscribeSettingCommand { get; set; }
         public RelayCommand QueryLogsCommand { get; set; }
         public RelayCommand LoadedCommand { get; set; }
         public RelayCommand ClosedCommand { get; set; }
         public RelayCommand AddSubscibeCommand { get; set; }
         public RelayCommand<bool> SetListenPortCommand { get; set; }
+        public RelayCommand SetSendExceptionCommand { get; set; }
         #endregion
 
         #region 构造函数
@@ -142,12 +157,14 @@ namespace FileTransfer.ViewModels
         {
             ControlMonitorCommand = new RelayCommand<bool>(ExecuteControlMonitorCommand);
             AddMonitorCommand = new RelayCommand(ExecuteAddMonitorCommand);
-            DeleteSettingCommand = new RelayCommand<object>(ExecuteDeleteMonitorCommand);
+            DeleteMonitorSettingCommand = new RelayCommand<object>(ExecuteDeleteMonitorSettingCommand);
+            DeleteSubscribeSettingCommand = new RelayCommand<object>(ExecuteDeleteSubscribeSettingCommand);
             QueryLogsCommand = new RelayCommand(ExecuteQueryLogsCommand);
             LoadedCommand = new RelayCommand(ExecuteLoadedCommand);
             ClosedCommand = new RelayCommand(ExecuteClosedCommand);
             AddSubscibeCommand = new RelayCommand(ExecuteAddSubscibeCommand, CanExecuteAddSubscibeCommand);
             SetListenPortCommand = new RelayCommand<bool>(ExecuteSetListenPortCommand);
+            SetSendExceptionCommand = new RelayCommand(ExecuteSetSendExceptionCommand);
         }
 
         private void ExecuteControlMonitorCommand(bool control)
@@ -157,13 +174,14 @@ namespace FileTransfer.ViewModels
                 try
                 {
                     NotifyText = @"开始监控前检测......";
-                    if (!CheckMonitorSettings())
+                    bool? checkFlag = CheckMonitorSettings();
+                    if (checkFlag == false)
                     {
                         NotifyText = @"";
                         return;
                     }
                     //开启监控
-                    FileWatcherHelper.Instance.StartMoniter();
+                    FileWatcherHelper.Instance.StartMoniter(checkFlag == true);
                     MonitorFlag = false;
                     NotifyText = @"监控开启中......";
                 }
@@ -182,7 +200,7 @@ namespace FileTransfer.ViewModels
             }
         }
 
-        private bool CheckMonitorSettings()
+        private bool? CheckMonitorSettings()
         {
             //检查是否存在监控文件夹
             if (MonitorCollection.Count <= 0)
@@ -197,34 +215,28 @@ namespace FileTransfer.ViewModels
                 MessageBox.Show(string.Format("当前计算机内不存在{0}监控文件夹！请检查", monitor.MonitorDirectory), "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
-            //检查是否设置删除文件
+            //检查监控文件夹内是否有文件或子文件夹
+            List<string> files = new List<string>();
+            List<string> directories = new List<string>();
             foreach (var monitor in MonitorCollection)
             {
-                if (!monitor.DeleteFiles)
-                    continue;
                 List<string> filesPath = IOHelper.Instance.GetAllFiles(monitor.MonitorDirectory);
-                if (filesPath == null)
-                {
-                    MessageBox.Show(@"获取监控目录下的文件时发生异常！", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return false;
-                }
-                if (filesPath.Count <= 0)
-                    continue;
-                if (MessageBox.Show(string.Format("监控文件夹{0}内含有文件，与配置不符，开启监控前是否将内部文件删除？", monitor.MonitorDirectory), "警告", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
-                    IOHelper.Instance.DeleteFiles(filesPath);
-            }
-            //检查是否设置删除子文件夹
-            foreach (var monitor in MonitorCollection)
-            {
-                if (!monitor.DeleteSubdirectory)
-                    continue;
+                if (filesPath != null && filesPath.Count > 0)
+                    files.AddRange(filesPath);
                 List<string> directoriesPath = IOHelper.Instance.GetAllSubDirectories(monitor.MonitorDirectory);
-                if (directoriesPath == null)
-                    MessageBox.Show(@"获取监控目录下的子文件夹时发生异常！", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                if (directoriesPath.Count <= 0)
-                    continue;
-                if (MessageBox.Show(string.Format("监控文件夹{0}内含有子文件夹，与配置不符，开启监控前是否将内部子文件夹删除？", monitor.MonitorDirectory), "警告", MessageBoxButtons.YesNo) == DialogResult.Yes)
-                    IOHelper.Instance.DeleteDirectories(directoriesPath);
+                if (directoriesPath != null && directoriesPath.Count > 0)
+                    directories.AddRange(directoriesPath);
+            }
+            if (files.Count > 0 || directories.Count > 0)
+            {
+                if (MessageBox.Show("监控目录集合中存在文件或子文件夹，是否忽略？\n（是：删除文件及子文件夹，否：将监控文件及子文件夹）", "提醒", MessageBoxButtons.YesNo, MessageBoxIcon.Information) == DialogResult.Yes)
+                {
+                    IOHelper.Instance.DeleteFiles(files);
+                    IOHelper.Instance.DeleteDirectories(directories);
+                    return true;
+                }
+                else
+                    return null;
             }
             return true;
         }
@@ -236,55 +248,65 @@ namespace FileTransfer.ViewModels
             if (dlg.ShowDialog() == DialogResult.OK)
             {
                 string selectedPath = dlg.SelectedPath;
-                if (MonitorCollection.FirstOrDefault(m => m.MonitorDirectory == selectedPath) == null)
-                    MonitorCollection.Add(new MonitorModel() { MonitorDirectory = selectedPath });
+                if (IOHelper.Instance.IsConflict(selectedPath, SendExceptionSavePath))
+                {
+                    MessageBox.Show("所选文件夹与发送异常转存路径冲突！", "提醒", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
                 else
-                    MessageBox.Show("所选文件夹已在监控目录中！", "提醒", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                {
+                    if (MonitorCollection.FirstOrDefault(m => m.MonitorDirectory == selectedPath) == null)
+                        MonitorCollection.Add(new MonitorModel() { MonitorDirectory = selectedPath, DeleteFiles = true, DeleteSubdirectory = true });
+                    else
+                        MessageBox.Show("所选文件夹已在监控目录中！", "提醒", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
             }
         }
 
-        private void ExecuteDeleteMonitorCommand(object deleteItem)
+        private void ExecuteDeleteMonitorSettingCommand(object deleteItem)
         {
-            var model1 = deleteItem as MonitorModel;
-            if (model1 != null)
+            var monitorModel = deleteItem as MonitorModel;
+            if (monitorModel == null) return;
+            //检查发送标志位（若为true则不允许删除配置）
+            if (SynchronousSocketManager.Instance.SendingFilesFlag)
             {
-                //检查发送标志位（若为true则不允许删除配置）
-                if (SynchronousSocketManager.Instance.SendingFilesFlag)
-                {
-                    MessageBox.Show("当前正在发送文件，不允许删除任何监控配置项！", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-                //删除监控配置
-                MonitorCollection.Remove(model1);
-                if (string.IsNullOrEmpty(model1.SubscribeIP)) return;
-                //删除监控配置后通知相关订阅方，删除相关配置
-                SynchronousSocketManager.Instance.SendDeleteMonitorInfo(UtilHelper.Instance.GetIPEndPoint(model1.SubscribeIP), model1.MonitorDirectory);
+                MessageBox.Show("当前正在发送文件，不允许删除任何监控配置项！", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
             }
-            else
+            //删除监控配置
+            MonitorCollection.Remove(monitorModel);
+            if (monitorModel.SubscribeInfos == null || monitorModel.SubscribeInfos.Count == 0) return;
+            //删除监控配置后通知相关订阅方，删除相关配置
+            Task.Factory.StartNew(() =>
             {
-                var model2 = deleteItem as SubscribeModel;
-                if (model2 == null) return;
-                //检查接收标志位（若为true则不允许删除配置）
-                if (SynchronousSocketManager.Instance.ReceivingFlag)
+                foreach (var subscribeInfo in monitorModel.SubscribeInfos)
                 {
-                    MessageBox.Show("当前正在接收，不允许删除任何接收配置项！", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
+                    SynchronousSocketManager.Instance.SendDeleteMonitorInfo(UtilHelper.Instance.GetIPEndPoint(subscribeInfo.SubscribeIP), monitorModel.MonitorDirectory);
                 }
-                //删除接收配置
-                SubscribeCollection.Remove(model2);
-                //删除接收配置后，综合接收配置决定是否通知监控端删除订阅信息
-                if (SubscribeCollection.FirstOrDefault(s => s.MonitorIP == model2.MonitorIP) == null)
-                    SynchronousSocketManager.Instance.SendUnregisterSubscribeInfo(UtilHelper.Instance.GetIPEndPoint(string.Format("{0}:{1}", model2.MonitorIP, model2.MonitorListenPort)), model2.MonitorDirectory);
+            });
+        }
+
+        private void ExecuteDeleteSubscribeSettingCommand(object deleteItem)
+        {
+            var subscribeModel = deleteItem as SubscribeModel;
+            if (subscribeModel == null) return;
+            //检查接收标志位（若为true则不允许删除配置）
+            if (SynchronousSocketManager.Instance.ReceivingFlag)
+            {
+                MessageBox.Show("当前正在接收，不允许删除任何接收配置项！", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
             }
+            //删除接收配置
+            SubscribeCollection.Remove(subscribeModel);
+            //删除接收配置后，综合接收配置决定是否通知监控端删除订阅信息
+            Task.Factory.StartNew(() =>
+            {
+                if (SubscribeCollection.FirstOrDefault(s => s.MonitorIP == subscribeModel.MonitorIP && s.MonitorDirectory == subscribeModel.MonitorDirectory) == null)
+                    SynchronousSocketManager.Instance.SendUnregisterSubscribeInfo(UtilHelper.Instance.GetIPEndPoint(string.Format("{0}:{1}", subscribeModel.MonitorIP, subscribeModel.MonitorListenPort)), subscribeModel.MonitorDirectory);
+            });
         }
 
         private void ExecuteQueryLogsCommand()
         {
-            if (SynchronousSocketManager.Instance.SendingFilesFlag || SynchronousSocketManager.Instance.ReceivingFlag)
-            {
-                MessageBox.Show("当前程序正在接发数据！", "提醒", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
             Messenger.Default.Send<string>("ShowLogsQueryView");
         }
 
@@ -301,6 +323,7 @@ namespace FileTransfer.ViewModels
                 SubscribeCollection = new ObservableCollection<SubscribeModel>(subscribeTemp);
                 ListenPort = ConfigHelper.Instance.ListenPort;
                 ScanPeriod = ConfigHelper.Instance.ScanPeriod;
+                SendExceptionSavePath = ConfigHelper.Instance.IncompleteSendSavePath;
                 //订阅事件
                 FileWatcherHelper.Instance.NotifyMonitorChanges = SynchronousSocketManager.Instance.SendMonitorChanges;
                 SynchronousSocketManager.Instance.SendFileProgress += ShowSendProgress;
@@ -312,6 +335,8 @@ namespace FileTransfer.ViewModels
             t.ContinueWith(v =>
             {
                 SynchronousSocketManager.Instance.StartListening(ListenPort);
+                //连接监测定时器初始化
+                InitialCheckConnectTimer();
             });
         }
 
@@ -326,10 +351,12 @@ namespace FileTransfer.ViewModels
 
         private void ShowCompleteSendFile(string monitor)
         {
-            MonitorCollection.Where(m => m.MonitorDirectory == monitor).ToList().ForEach(m =>
+            var monitorModel = MonitorCollection.FirstOrDefault(m => m.MonitorDirectory == monitor);
+            if (monitorModel == null) return;
+            monitorModel.SubscribeInfos.ToList().ForEach(s =>
             {
-                m.TransferFileName = @"";
-                m.TransferPercent = 0.0;
+                s.TransferFileName = @"";
+                s.TransferPercent = 0.0;
             });
         }
 
@@ -342,22 +369,30 @@ namespace FileTransfer.ViewModels
             });
         }
 
-        private void ShowSendProgress(string monitor, string sendFile, double progerss)
+        private void ShowSendProgress(string monitor, string remote, string sendFile, double progerss)
         {
-            MonitorCollection.Where(m => m.MonitorDirectory == monitor).ToList().ForEach(m =>
+            var monitorModel = MonitorCollection.FirstOrDefault(m => m.MonitorDirectory == monitor);
+            if (monitorModel == null) return;
+            monitorModel.SubscribeInfos.Where(s => s.SubscribeIP == remote).ToList().ForEach(s =>
             {
-                m.TransferFileName = sendFile;
-                m.TransferPercent = progerss;
+                s.TransferFileName = sendFile;
+                s.TransferPercent = progerss;
             });
         }
 
         private void ExecuteClosedCommand()
         {
-            var monitors = MonitorCollection.ToList();
-            var subscribes = SubscribeCollection.ToList();
-            ConfigHelper.Instance.SaveSettings(monitors, subscribes, ListenPort, ScanPeriod);
+            SaveSettings();
+            DisposeCheckConnectTimer();
             SynchronousSocketManager.Instance.StopListening();
             _logger.Info("主窗体卸载完毕!");
+        }
+
+        private void SaveSettings()
+        {
+            var monitors = MonitorCollection.ToList();
+            var subscribes = SubscribeCollection.ToList();
+            ConfigHelper.Instance.SaveSettings(monitors, subscribes, ListenPort, ScanPeriod, SendExceptionSavePath);
         }
 
         private bool CanExecuteAddSubscibeCommand()
@@ -382,7 +417,7 @@ namespace FileTransfer.ViewModels
                 //判断是否有接收（有的话则不允许关闭监听）
                 if (SynchronousSocketManager.Instance.ReceivingFlag)
                 {
-                    MessageBox.Show("当前监听端口正在接收信息！暂不允许关闭！", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("当前监听端口正在接收信息！", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
                 SynchronousSocketManager.Instance.StopListening();
@@ -390,23 +425,62 @@ namespace FileTransfer.ViewModels
             }
         }
 
+        private void ExecuteSetSendExceptionCommand()
+        {
+            var dlg = new FolderBrowserDialog();
+            dlg.Description = @"请选择转存文件夹目录";
+            if (dlg.ShowDialog() == DialogResult.OK)
+            {
+                string selectedPath = dlg.SelectedPath;
+                //TODO:判断转存文件夹和监控文件夹是否有冲突
+                foreach (var monitor in MonitorCollection)
+                {
+                    if (IOHelper.Instance.IsConflict(monitor.MonitorDirectory, selectedPath))
+                    {
+                        MessageBox.Show("所选文件夹与监控目录冲突！", "提醒", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        return;
+                    }
+                }
+                SendExceptionSavePath = selectedPath;
+            }
+        }
+
         #endregion
 
         #region 公共方法
-        public void CompleteMonitorSetting(string subscribeIP, string monitorDirectory)
+        public void CompleteMonitorSetting(string monitorDirectory, string subscribeIP)
         {
-            if (MonitorCollection.Any(m => m.MonitorDirectory == monitorDirectory && m.SubscribeIP == subscribeIP)) return;
             var monitor = MonitorCollection.FirstOrDefault(m => m.MonitorDirectory == monitorDirectory);
             if (monitor == null) return;
-            if (string.IsNullOrEmpty(monitor.SubscribeIP))
-                monitor.SubscribeIP = subscribeIP;
-            else
+            if (monitor.SubscribeInfos == null)
+                monitor.SubscribeInfos = new ObservableCollection<SubscribeInfoModel>();
+            if (monitor.SubscribeInfos.Where(s => s.SubscribeIP == subscribeIP).Count() > 0) return;
+            SubscribeInfoModel infoModel = new SubscribeInfoModel() { SubscribeIP = subscribeIP, CanConnect = true };
+            var collection = new ObservableCollection<SubscribeInfoModel>();
+            foreach (var subscribe in monitor.SubscribeInfos)
             {
-                App.Current.Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    MonitorCollection.Add(new MonitorModel() { MonitorDirectory = monitorDirectory, SubscribeIP = subscribeIP });
-                }));
+                collection.Add(subscribe);
             }
+            collection.Add(infoModel);
+            monitor.SubscribeInfos = collection;
+        }
+
+        public void RemoveMonitorSetting(string monitorDirectory, string subscribeIP)
+        {
+            var monitor = MonitorCollection.FirstOrDefault(m => m.MonitorDirectory == monitorDirectory);
+            if (monitor == null) return;
+            if (monitor.SubscribeInfos == null || monitor.SubscribeInfos.Count == 0) return;
+            var collection = new ObservableCollection<SubscribeInfoModel>();
+            foreach (var s in monitor.SubscribeInfos)
+            {
+                collection.Add(s);
+            }
+            var subscribes = monitor.SubscribeInfos.Where(s => s.SubscribeIP == subscribeIP).ToList();
+            foreach (var s in subscribes)
+            {
+                collection.Remove(s);
+            }
+            monitor.SubscribeInfos = collection;
         }
 
         public void RemoveAcceptSettings(string monitorIP, string monitorDirectory)
@@ -420,6 +494,73 @@ namespace FileTransfer.ViewModels
                 }
             }));
 
+        }
+        #endregion
+
+        #region 检测与远端连接
+        private void InitialCheckConnectTimer()
+        {
+            CheckRemoteConnect();
+            _checkConnectTimer = new System.Timers.Timer();
+            _checkConnectTimer.Interval = 10000;
+            _checkConnectTimer.Elapsed += _checkConnectTimer_Elapsed;
+            _checkConnectTimer.Start();
+            _logger.Info(string.Format("启动检测远端连接状态的定时起，定时周期为{0}毫秒", _checkConnectTimer.Interval));
+        }
+
+        private void DisposeCheckConnectTimer()
+        {
+            if (_checkConnectTimer != null)
+            {
+                _checkConnectTimer.Stop();
+                _checkConnectTimer.Elapsed -= _checkConnectTimer_Elapsed;
+            }
+            _checkConnectTimer = null;
+        }
+
+        private void _checkConnectTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            _checkConnectTimer.Stop();
+            try
+            {
+                CheckRemoteConnect();
+            }
+            catch (Exception exception)
+            {
+                _logger.Error(string.Format("定时检测远端连接状态时出现异常，异常为：{0}", exception.Message));
+            }
+            finally
+            {
+                _checkConnectTimer.Start();
+            }
+        }
+
+        private void CheckRemoteConnect()
+        {
+            List<MonitorModel> monitors = new List<MonitorModel>();
+            lock (MonitorCollection)
+            {
+                foreach (var m in MonitorCollection)
+                {
+                    monitors.Add(m);
+                }
+            }
+            foreach (var monitor in monitors)
+            {
+                if (monitor.SubscribeInfos == null || monitor.SubscribeInfos.Count == 0) continue;
+                foreach (var subscribeInfo in monitor.SubscribeInfos)
+                {
+                    if (string.IsNullOrEmpty(subscribeInfo.SubscribeIP)) continue;
+                    if (SynchronousSocketManager.Instance.CanConnectRemote(UtilHelper.Instance.GetIPEndPoint(subscribeInfo.SubscribeIP)))
+                        subscribeInfo.CanConnect = true;
+                    else
+                        subscribeInfo.CanConnect = false;
+                }
+                //刷新前端界面
+                var info = monitor.SubscribeInfos;
+                monitor.SubscribeInfos = info;
+            }
+            RaisePropertyChanged("MonitorCollection");
         }
         #endregion
 

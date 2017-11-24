@@ -61,7 +61,7 @@ namespace FileTransfer.FileWatcher
             }
             catch (Exception e)
             {
-                _logger.Error(string.Format("获取文件夹{0}下的文件信息时发生错误！错误信息:{1}", path, e.Message));
+                _logger.Error(string.Format("获取文件夹{0}下的所有文件信息时发生错误！错误信息:{1}", path, e.Message));
                 return null;
             }
         }
@@ -183,6 +183,45 @@ namespace FileTransfer.FileWatcher
                 _deleteSubdirectoryDic[monitor] = deleteSubdirectory;
             else
                 _deleteSubdirectoryDic.Add(monitor, deleteSubdirectory);
+        }
+
+        public bool IsConflict(string directoryPath1, string directoryPath2)
+        {
+            int minLength = Math.Min(directoryPath1.Length, directoryPath2.Length);
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < minLength; i++)
+            {
+                char c1 = directoryPath1[i];
+                char c2 = directoryPath2[i];
+                if (c1 == c2)
+                    sb.Append(c1);
+                else
+                    break;
+            }
+            string intersectStr = sb.ToString();
+            if (intersectStr == directoryPath1 || intersectStr == directoryPath2)
+                return true;
+            return false;
+        }
+
+        public void SaveUnsendedFiles(List<string> unsendedFiles, string path)
+        {
+            try
+            {
+                List<string> files = unsendedFiles.Distinct().ToList();
+                if (!Directory.Exists(path))
+                    Directory.CreateDirectory(path);
+                foreach (var file in files)
+                {
+                    FileInfo info = new FileInfo(file);
+                    string destFile = Path.Combine(path, info.Name);
+                    File.Copy(file, destFile, true);
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.Error(string.Format("文件转存过程中发生异常！异常：{0}", e.Message));
+            }
         }
 
         #endregion

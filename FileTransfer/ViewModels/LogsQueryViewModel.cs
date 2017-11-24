@@ -19,15 +19,16 @@ namespace FileTransfer.ViewModels
         #region 变量
         private string _logsFilePath;
         private static ILog _logger = LogManager.GetLogger(typeof(LogsQueryViewModel));
-        private string _logPattern;
-        private string _sendLogPattern;
-        private string _receiveLogPattern;
+        private readonly string _fileLogPattern;
+        private readonly string _sendLogPattern;
+        private readonly string _receiveLogPattern;
+        private readonly string _errorLogPattern;
+        private readonly string _monitorLogPattern;
 
         #endregion
 
         #region 属性
         private ObservableCollection<SendLogModel> _sendLogs;
-
         public ObservableCollection<SendLogModel> SendLogs
         {
             get { return _sendLogs ?? (_sendLogs = new ObservableCollection<SendLogModel>()); }
@@ -39,7 +40,6 @@ namespace FileTransfer.ViewModels
         }
 
         private ObservableCollection<ReceiveLogModel> _receiveLogs;
-
         public ObservableCollection<ReceiveLogModel> ReceiveLogs
         {
             get { return _receiveLogs ?? (_receiveLogs = new ObservableCollection<ReceiveLogModel>()); }
@@ -47,6 +47,28 @@ namespace FileTransfer.ViewModels
             {
                 _receiveLogs = value;
                 RaisePropertyChanged("ReceiveLogs");
+            }
+        }
+
+        private ObservableCollection<ErrorLogModel> _errorLogs;
+        public ObservableCollection<ErrorLogModel> ErrorLogs
+        {
+            get { return _errorLogs ?? (_errorLogs = new ObservableCollection<ErrorLogModel>()); }
+            set
+            {
+                _errorLogs = value;
+                RaisePropertyChanged("ErrorLogs");
+            }
+        }
+
+        private ObservableCollection<MonitorLogModel> _monitorLogs;
+        public ObservableCollection<MonitorLogModel> MonitorLogs
+        {
+            get { return _monitorLogs ?? (_monitorLogs = new ObservableCollection<MonitorLogModel>()); }
+            set
+            {
+                _monitorLogs = value;
+                RaisePropertyChanged("MonitorLogs");
             }
         }
 
@@ -59,6 +81,11 @@ namespace FileTransfer.ViewModels
         #region 构造函数
         public LogsQueryViewModel()
         {
+            _fileLogPattern = @"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}),\d{3} \[\d+] [A-Z,a-z,0-9, ]+.*?- \[File]([\s\S]*?)";
+            _sendLogPattern = @"\[File]([\s\S]*?)\[SubscribeIP]([\s\S]*?)\[FileSendState]([\s\S]*?)";
+            _receiveLogPattern = @"\[File]([\s\S]*?)\[MonitorIP]([\s\S]*?)\[MonitorDirectory]([\s\S]*?)\[FileReceiveState]([\s\S]*?)";
+            _errorLogPattern = @"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}),\d{3} \[\d+] (WARN|ERROR|FATAL){1} [A-Z,a-z,0-9, ]+.*?- ([\s\S]*?)";
+            _monitorLogPattern = @"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}),\d{3} \[\d+] [A-Z,a-z,0-9, ]+.*?- \[MonitorFile]([\s\S]*?)";
             InitialParams();
             InitialCommands();
         }
@@ -68,9 +95,6 @@ namespace FileTransfer.ViewModels
         private void InitialParams()
         {
             _logsFilePath = Path.Combine(Environment.CurrentDirectory, "logs");
-            _logPattern = @"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}),\d{3} \[\d+] [A-Z,a-z,0-9, ]+.*?- \[File]([\s\S]*?)";
-            _sendLogPattern = @"\[File]([\s\S]*?)\[SubscribeIP]([\s\S]*?)\[FileSendState]([\s\S]*?)";
-            _receiveLogPattern = @"\[File]([\s\S]*?)\[MonitorIP]([\s\S]*?)\[MonitorDirectory]([\s\S]*?)\[FileReceiveState]([\s\S]*?)";
         }
 
         private void InitialCommands()
@@ -83,7 +107,7 @@ namespace FileTransfer.ViewModels
             //判断文件夹是否存在
             if (!Directory.Exists(_logsFilePath)) return;
             //获取所有日志
-            List<string> logFiles = Directory.GetFiles(_logsFilePath, @"*.log*").ToList();
+            List<string> logFiles = Directory.GetFiles(_logsFilePath, @"File*.log*").ToList();
             foreach (var logFile in logFiles)
             {
                 GetLogs(logFile);
@@ -101,27 +125,48 @@ namespace FileTransfer.ViewModels
                         while (sr.Peek() >= 0)
                         {
                             string logLine = await sr.ReadLineAsync();
-                            Match match = Regex.Match(logLine, _logPattern, RegexOptions.RightToLeft);
-                            if (!match.Success) continue;
-                            string dateTime = match.Groups[1].Value;
-                            string logMsg = string.Format("[File]{0}", match.Groups[2].Value);
-                            Match sendMatch = Regex.Match(logMsg, _sendLogPattern, RegexOptions.RightToLeft);
-                            if (sendMatch.Success)
+                            Match match = Regex.Match(logLine, _fileLogPattern, RegexOptions.RightToLeft);
+                            if (!match.Success)
                             {
-                                string sendFile = sendMatch.Groups[1].Value;
-                                string subscribeIP = sendMatch.Groups[2].Value;
-                                string sendState = sendMatch.Groups[3].Value;
-                                SendLogs.Add(new SendLogModel() { SendFileTime = DateTime.ParseExact(dateTime, "yyyy-MM-dd HH:mm:ss", null), SendFileName = sendFile, SubscribeIP = subscribeIP, SendFileState = sendState });
+                                Match errorMatch = Regex.Match(logLine, _errorLogPattern, RegexOptions.RightToLeft);
+                                if (errorMatch.Success)
+                                {
+                                    string dateTime = errorMatch.Groups[1].Value;
+                                    string logType = errorMatch.Groups[2].Value;
+                                    string content = errorMatch.Groups[3].Value;
+                                    ErrorLogs.Add(new ErrorLogModel() { ErrorOccurTime = DateTime.ParseExact(dateTime, "yyyy-MM-dd HH:mm:ss", null), ErrorFlag = logType, ErrorContent = content });
+                                }
+                                else
+                                {
+                                    Match monitorMatch = Regex.Match(logLine, _monitorLogPattern, RegexOptions.RightToLeft);
+                                    if (!monitorMatch.Success) continue;
+                                    string dateTime = monitorMatch.Groups[1].Value;
+                                    string content = monitorMatch.Groups[2].Value;
+                                    MonitorLogs.Add(new MonitorLogModel(dateTime, content));
+                                }
                             }
                             else
                             {
-                                Match receiveMatch = Regex.Match(logMsg, _receiveLogPattern, RegexOptions.RightToLeft);
-                                if (!receiveMatch.Success) continue;
-                                string receiveFile = receiveMatch.Groups[1].Value;
-                                string monitorIP = receiveMatch.Groups[2].Value;
-                                string monitorDirectory = receiveMatch.Groups[3].Value;
-                                string receiveState = receiveMatch.Groups[4].Value;
-                                ReceiveLogs.Add(new ReceiveLogModel() { ReceiveFileTime = DateTime.ParseExact(dateTime, "yyyy-MM-dd HH:mm:ss", null), ReceiveFileName = receiveFile, MonitorIP = monitorIP, MonitorDirectory = monitorDirectory, ReceiveFileState = receiveState });
+                                string dateTime = match.Groups[1].Value;
+                                string logMsg = string.Format("[File]{0}", match.Groups[2].Value);
+                                Match sendMatch = Regex.Match(logMsg, _sendLogPattern, RegexOptions.RightToLeft);
+                                if (sendMatch.Success)
+                                {
+                                    string sendFile = sendMatch.Groups[1].Value;
+                                    string subscribeIP = sendMatch.Groups[2].Value;
+                                    string sendState = sendMatch.Groups[3].Value;
+                                    SendLogs.Add(new SendLogModel() { SendFileTime = DateTime.ParseExact(dateTime, "yyyy-MM-dd HH:mm:ss", null), SendFileName = sendFile, SubscribeIP = subscribeIP, SendFileState = sendState });
+                                }
+                                else
+                                {
+                                    Match receiveMatch = Regex.Match(logMsg, _receiveLogPattern, RegexOptions.RightToLeft);
+                                    if (!receiveMatch.Success) continue;
+                                    string receiveFile = receiveMatch.Groups[1].Value;
+                                    string monitorIP = receiveMatch.Groups[2].Value;
+                                    string monitorDirectory = receiveMatch.Groups[3].Value;
+                                    string receiveState = receiveMatch.Groups[4].Value;
+                                    ReceiveLogs.Add(new ReceiveLogModel() { ReceiveFileTime = DateTime.ParseExact(dateTime, "yyyy-MM-dd HH:mm:ss", null), ReceiveFileName = receiveFile, MonitorIP = monitorIP, MonitorDirectory = monitorDirectory, ReceiveFileState = receiveState });
+                                }
                             }
                         }
                     }

@@ -62,12 +62,14 @@ namespace FileTransfer.Sockets
                 _logger.Fatal(string.Format("启动本地端口{0}侦听发生套接字异常！SocketException ErrorCode:{1}", port, se.ErrorCode));
                 CloseSocket(_listenSocket);
                 MessageBox.Show("启动本地侦听时发生套接字异常！", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                SimpleIoc.Default.GetInstance<MainViewModel>().CanSetListenPort = true;
             }
             catch (Exception e)
             {
                 _logger.Error(string.Format("启动本地侦听时发生异常！异常：{0}", e.Message));
                 CloseSocket(_listenSocket);
                 MessageBox.Show("启动本地侦听时发生异常！", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                SimpleIoc.Default.GetInstance<MainViewModel>().CanSetListenPort = true;
             }
         }
 
@@ -105,12 +107,12 @@ namespace FileTransfer.Sockets
             }
             catch (SocketException se)
             {
-                _logger.Error(string.Format("向远端{0}:{1}发起连接时发生套接字异常！SocketException ErrorCode:{1}", ep.Address, ep.Port, se.ErrorCode));
+                _logger.Error(string.Format("向远端{0}发起连接时发生套接字异常！SocketException ErrorCode:{1}", ep, se.ErrorCode));
                 return null;
             }
             catch (Exception e)
             {
-                _logger.Error(string.Format("向远端{0}:{1}发起连接时发生异常！异常：{1}", ep.Address, ep.Port, e.Message));
+                _logger.Error(string.Format("向远端{0}发起连接时发生异常！异常：{1}", ep, e.Message));
                 return null;
             }
         }

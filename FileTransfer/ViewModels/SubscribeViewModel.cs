@@ -20,7 +20,7 @@ namespace FileTransfer.ViewModels
     public class SubscribeViewModel : ViewModelBase
     {
         #region 变量
-
+        private bool _canRequestMonitorFloders;
         #endregion
 
         #region 属性
@@ -97,6 +97,7 @@ namespace FileTransfer.ViewModels
         public SubscribeViewModel()
         {
             InitialCommands();
+            InitialParams();
         }
         #endregion
 
@@ -104,32 +105,54 @@ namespace FileTransfer.ViewModels
         private void InitialCommands()
         {
             RequestMonitorFlodersCommand = new RelayCommand(ExecuteRequestMonitorFlodersCommand, CanExecuteRequestMonitorFlodersCommand);
-            SetAcceptFilePathCommand = new RelayCommand(ExecuteSetAcceptFilePathCommand);
+            SetAcceptFilePathCommand = new RelayCommand(ExecuteSetAcceptFilePathCommand, CanExecuteSetAcceptFilePathCommand);
             ConfirmCommand = new RelayCommand(ExecuteConfirmCommand, CanExecuteConfirmCommand);
             CancelCommand = new RelayCommand(ExecuteCancelCommand);
         }
 
+        private void InitialParams()
+        {
+            _canRequestMonitorFloders = true;
+        }
+
         private bool CanExecuteRequestMonitorFlodersCommand()
         {
-            return (RemotePort >= 0 && RemotePort <= 65535) && !string.IsNullOrEmpty(RemoteIP) && Regex.IsMatch(RemoteIP, @"^(((\d{1,2})|(1[0-9][0-9])|(2[0-4][0-9])|(25[0-5]))\.){3}((\d{1,2})|(1[0-9][0-9])|(2[0-4][0-9])|(25[0-5]))$");
+            return _canRequestMonitorFloders && (RemotePort >= 0 && RemotePort <= 65535) && !string.IsNullOrEmpty(RemoteIP) && Regex.IsMatch(RemoteIP, @"^(((\d{1,2})|(1[0-9][0-9])|(2[0-4][0-9])|(25[0-5]))\.){3}((\d{1,2})|(1[0-9][0-9])|(2[0-4][0-9])|(25[0-5]))$");
         }
 
         private void ExecuteRequestMonitorFlodersCommand()
         {
-            RemoteMonitorFloders = new ObservableCollection<RemoteMonitorModel>();
-            byte[] address = UtilHelper.Instance.GetIPAddressBytes(RemoteIP);
-            IPEndPoint ep = new IPEndPoint(new IPAddress(address), RemotePort);
-            List<string> remoteMonitorFloders = SynchronousSocketManager.Instance.RequestRemoteMoniterFloders(ep);
-            if (remoteMonitorFloders != null && remoteMonitorFloders.Count > 0)
+            Task.Factory.StartNew(() =>
             {
-                remoteMonitorFloders = remoteMonitorFloders.Distinct().ToList();
-                remoteMonitorFloders.ForEach(f => RemoteMonitorFloders.Add(new RemoteMonitorModel(f)));
-            }
-            else
-                MessageBox.Show(@"从远端未能获取监控文件夹信息！可能未配置监控文件夹！", "提醒", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                //禁止检测监控文件夹按钮
+                _canRequestMonitorFloders = false;
+                RemoteMonitorFloders = new ObservableCollection<RemoteMonitorModel>();
+                byte[] address = UtilHelper.Instance.GetIPAddressBytes(RemoteIP);
+                IPEndPoint ep = new IPEndPoint(new IPAddress(address), RemotePort);
+                List<string> remoteMonitorFloders = SynchronousSocketManager.Instance.RequestRemoteMoniterFloders(ep);
+                if (remoteMonitorFloders == null)
+                    SimpleIoc.Default.GetInstance<MainViewModel>().NotifyText = string.Format("{0}：检测{1}的监控文件夹时无法正常连接！", DateTime.Now, ep);
+                else if (remoteMonitorFloders.Count == 0)
+                    SimpleIoc.Default.GetInstance<MainViewModel>().NotifyText = string.Format("{0}：检测{1}的监控文件夹时无监控文件夹！", DateTime.Now, ep);
+                else
+                {
+                    remoteMonitorFloders = remoteMonitorFloders.Distinct().ToList();
+                    var monitorFloders = new ObservableCollection<RemoteMonitorModel>();
+                    foreach (var f in remoteMonitorFloders)
+                    {
+                        monitorFloders.Add(new RemoteMonitorModel(f));
+                    }
+                    RemoteMonitorFloders = monitorFloders;
+                }
+                //恢复检测监控文件夹按钮
+                _canRequestMonitorFloders = true;
+            });
         }
 
-
+        private bool CanExecuteSetAcceptFilePathCommand()
+        {
+            return RemoteMonitorFloders.Count > 0;
+        }
 
         private void ExecuteSetAcceptFilePathCommand()
         {
@@ -155,7 +178,7 @@ namespace FileTransfer.ViewModels
             SubscribeModel subscribe = new SubscribeModel() { MonitorIP = RemoteIP, MonitorListenPort = RemotePort, MonitorDirectory = monitorDirectory, AcceptDirectory = acceptDirectiory };
             if (SimpleIoc.Default.GetInstance<MainViewModel>().SubscribeCollection.FirstOrDefault(s => s.MonitorIP == remoteAddress && s.MonitorDirectory == monitorDirectory && s.AcceptDirectory == acceptDirectiory) != null)
             {
-                MessageBox.Show("接受配置中已有相同项！", "提醒", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("接收配置中已有相同项！", "提醒", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
             SimpleIoc.Default.GetInstance<MainViewModel>().SubscribeCollection.Add(subscribe);
