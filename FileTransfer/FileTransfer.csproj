@@ -141,8 +141,10 @@
     <Compile Include="Converters\SubscribeNetworkConverter.cs" />
     <Compile Include="Converters\SubscribeSummaryConverter.cs" />
     <Compile Include="Converters\VisibilityToNullableBooleanConverter.cs" />
+    <Compile Include="FileWatcher\FilesRecord.cs" />
     <Compile Include="FileWatcher\IOHelper.cs" />
     <Compile Include="FileWatcher\MonitorChanges.cs" />
+    <Compile Include="FileWatcher\SendFileProcess.cs" />
     <Compile Include="Models\ErrorLogModel.cs" />
     <Compile Include="Models\MonitorLogModel.cs" />
     <Compile Include="Models\MonitorModel.cs" />

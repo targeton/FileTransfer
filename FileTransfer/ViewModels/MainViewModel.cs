@@ -69,6 +69,7 @@ namespace FileTransfer.ViewModels
             {
                 _listenPort = value;
                 RaisePropertyChanged("ListenPort");
+                ConfigHelper.Instance.SaveListenPortSetting(value);
             }
         }
 
@@ -93,6 +94,7 @@ namespace FileTransfer.ViewModels
             {
                 _scanPeriod = value;
                 RaisePropertyChanged("ScanPeriod");
+                ConfigHelper.Instance.SaveScanPeridSetting(value);
             }
         }
 
@@ -255,7 +257,10 @@ namespace FileTransfer.ViewModels
                 else
                 {
                     if (MonitorCollection.FirstOrDefault(m => m.MonitorDirectory == selectedPath) == null)
-                        MonitorCollection.Add(new MonitorModel() { MonitorDirectory = selectedPath, DeleteFiles = true, DeleteSubdirectory = true });
+                    {
+                        MonitorCollection.Add(new MonitorModel() { MonitorDirectory = selectedPath, DeleteFiles = true });
+                        ConfigHelper.Instance.SaveSettings();
+                    }
                     else
                         MessageBox.Show("所选文件夹已在监控目录中！", "提醒", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
@@ -274,6 +279,7 @@ namespace FileTransfer.ViewModels
             }
             //删除监控配置
             MonitorCollection.Remove(monitorModel);
+            ConfigHelper.Instance.SaveSettings();
             if (monitorModel.SubscribeInfos == null || monitorModel.SubscribeInfos.Count == 0) return;
             //删除监控配置后通知相关订阅方，删除相关配置
             Task.Factory.StartNew(() =>
@@ -297,6 +303,7 @@ namespace FileTransfer.ViewModels
             }
             //删除接收配置
             SubscribeCollection.Remove(subscribeModel);
+            ConfigHelper.Instance.SaveSettings();
             //删除接收配置后，综合接收配置决定是否通知监控端删除订阅信息
             Task.Factory.StartNew(() =>
             {
@@ -325,7 +332,6 @@ namespace FileTransfer.ViewModels
                 ScanPeriod = ConfigHelper.Instance.ScanPeriod;
                 SendExceptionSavePath = ConfigHelper.Instance.IncompleteSendSavePath;
                 //订阅事件
-                FileWatcherHelper.Instance.NotifyMonitorChanges = SynchronousSocketManager.Instance.SendMonitorChanges;
                 SynchronousSocketManager.Instance.SendFileProgress += ShowSendProgress;
                 SynchronousSocketManager.Instance.AcceptFileProgress += ShowAcceptProgress;
                 SynchronousSocketManager.Instance.CompleteSendFile += ShowCompleteSendFile;
@@ -337,6 +343,8 @@ namespace FileTransfer.ViewModels
                 SynchronousSocketManager.Instance.StartListening(ListenPort);
                 //连接监测定时器初始化
                 InitialCheckConnectTimer();
+                //通知监控端订阅端上线
+                NotifyOnlineOffline();
             });
         }
 
@@ -384,6 +392,8 @@ namespace FileTransfer.ViewModels
         {
             SaveSettings();
             DisposeCheckConnectTimer();
+            //通知监控端订阅端下线
+            NotifyOnlineOffline(false);
             SynchronousSocketManager.Instance.StopListening();
             _logger.Info("主窗体卸载完毕!");
         }
@@ -463,6 +473,7 @@ namespace FileTransfer.ViewModels
             }
             collection.Add(infoModel);
             monitor.SubscribeInfos = collection;
+            ConfigHelper.Instance.SaveSettings();
         }
 
         public void RemoveMonitorSetting(string monitorDirectory, string subscribeIP)
@@ -481,6 +492,7 @@ namespace FileTransfer.ViewModels
                 collection.Remove(s);
             }
             monitor.SubscribeInfos = collection;
+            ConfigHelper.Instance.SaveSettings();
         }
 
         public void RemoveAcceptSettings(string monitorIP, string monitorDirectory)
@@ -493,11 +505,23 @@ namespace FileTransfer.ViewModels
                     SubscribeCollection.Remove(accept);
                 }
             }));
+            ConfigHelper.Instance.SaveSettings();
+        }
 
+        public void RefreshConnectStatus(string monitorDirectory, string subscribeIP, bool online = true)
+        {
+            var monitor = MonitorCollection.FirstOrDefault(m => m.MonitorDirectory == monitorDirectory);
+            if (monitor == null) return;
+            if (monitor.SubscribeInfos == null || monitor.SubscribeInfos.Count == 0) return;
+            var subscribeInfo = monitor.SubscribeInfos.FirstOrDefault(s => s.SubscribeIP == subscribeIP);
+            if (subscribeInfo == null) return;
+            subscribeInfo.CanConnect = online;
+            var collection = monitor.SubscribeInfos;
+            monitor.SubscribeInfos = collection;
         }
         #endregion
 
-        #region 检测与远端连接
+        #region 检测与订阅端连接，通知监控端上线/下线
         private void InitialCheckConnectTimer()
         {
             CheckRemoteConnect();
@@ -561,6 +585,19 @@ namespace FileTransfer.ViewModels
                 monitor.SubscribeInfos = info;
             }
             RaisePropertyChanged("MonitorCollection");
+        }
+
+        private void NotifyOnlineOffline(bool online = true)
+        {
+            var collection = SubscribeCollection.Select(s => string.Format("{0}:{1}|{2}", s.MonitorIP, s.MonitorListenPort, s.MonitorDirectory)).ToList().Distinct();
+            foreach (var str in collection)
+            {
+                string[] strArray = str.Split(new char[] { '|' });
+                if (strArray.Length != 2) continue;
+                string monitorIP = strArray[0];
+                string monitorDirectory = strArray[1];
+                SynchronousSocketManager.Instance.SendOnlineOfflineInfo(UtilHelper.Instance.GetIPEndPoint(monitorIP), monitorDirectory, online);
+            }
         }
         #endregion
 

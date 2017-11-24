@@ -16,6 +16,8 @@ namespace FileTransfer.FileWatcher
     {
         #region 变量
         private static ILog _logger = LogManager.GetLogger(typeof(FileWatcherHelper));
+        //保存文件增量发送的类
+        private List<SendFileProcess> _sendFileProcessList = new List<SendFileProcess>();
         //记录监控文件夹发生的文件信息变化
         private Dictionary<string, List<string>> _monitorDirectoryChanges;
         //定时器，用于定时监控
@@ -100,6 +102,7 @@ namespace FileTransfer.FileWatcher
                     continue;
                 //获取现有文件信息
                 List<string> nowFiles = IOHelper.Instance.GetAllFiles(monitorDirectory);
+                if (nowFiles == null) continue;
                 //获取原有文件信息
                 List<string> oldFiles = _monitorDirectoryChanges[monitorDirectory];
                 //相比之前文件信息集的增量
@@ -130,10 +133,9 @@ namespace FileTransfer.FileWatcher
                 if (monitor.SubscribeInfos == null || monitor.SubscribeInfos.Count == 0) continue;
                 changes.Add(new MonitorChanges() { MonitorDirectory = monitorDirectory, FileChanges = incrementFiles });
             }
+            if (changes != null && changes.Count > 0)
+                ProcessChanges(changes);
             RecoverMonitor();
-            if (changes == null || changes.Count <= 0) return;
-            if (NotifyMonitorChanges != null)
-                NotifyMonitorChanges(changes);
         }
 
         private bool TryAccessFile(string file)
@@ -160,6 +162,20 @@ namespace FileTransfer.FileWatcher
         {
             if (_timer == null) return;
             _timer.Start();
+        }
+
+        private void ProcessChanges(List<MonitorChanges> changes)
+        {
+            foreach (var change in changes)
+            {
+                var process = _sendFileProcessList.FirstOrDefault(p => p.MonitorDirectroy == change.MonitorDirectory);
+                if (process == null)
+                {
+                    process = new SendFileProcess(change.MonitorDirectory);
+                    _sendFileProcessList.Add(process);
+                }
+                process.Add(change.FileChanges);
+            }
         }
 
         #endregion

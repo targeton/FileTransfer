@@ -14,6 +14,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using FileTransfer.Configs;
 
 namespace FileTransfer.ViewModels
 {
@@ -182,6 +183,7 @@ namespace FileTransfer.ViewModels
                 return;
             }
             SimpleIoc.Default.GetInstance<MainViewModel>().SubscribeCollection.Add(subscribe);
+            ConfigHelper.Instance.SaveSettings();
             byte[] ipBytes = UtilHelper.Instance.GetIPAddressBytes(RemoteIP);
             IPEndPoint remote = new IPEndPoint(new IPAddress(ipBytes), RemotePort);
             SynchronousSocketManager.Instance.SendSubscribeInfo(remote, monitorDirectory);

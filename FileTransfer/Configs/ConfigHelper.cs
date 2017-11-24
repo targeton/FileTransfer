@@ -165,6 +165,31 @@ namespace FileTransfer.Configs
             ExportXml(_settingPath, config);
         }
 
+        public void SaveSettings()
+        {
+            _monitorSettings = SimpleIoc.Default.GetInstance<MainViewModel>().MonitorCollection.ToList();
+            _subscribeSettings = SimpleIoc.Default.GetInstance<MainViewModel>().SubscribeCollection.ToList();
+            _listenPort = SimpleIoc.Default.GetInstance<MainViewModel>().ListenPort;
+            _scanPerid = SimpleIoc.Default.GetInstance<MainViewModel>().ScanPeriod;
+            _incompleteSendSavePath = SimpleIoc.Default.GetInstance<MainViewModel>().SendExceptionSavePath;
+            var config = new ConfigClass(_monitorSettings, _subscribeSettings, _listenPort, _scanPerid, _incompleteSendSavePath);
+            ExportXml(_settingPath, config);
+        }
+
+        public void SaveScanPeridSetting(int scanPerid)
+        {
+            _scanPerid = scanPerid;
+            var config = new ConfigClass(_monitorSettings, _subscribeSettings, _listenPort, _scanPerid, _incompleteSendSavePath);
+            ExportXml(_settingPath, config);
+        }
+
+        public void SaveListenPortSetting(int listenPort)
+        {
+            _listenPort = listenPort;
+            var config = new ConfigClass(_monitorSettings, _subscribeSettings, _listenPort, _scanPerid, _incompleteSendSavePath);
+            ExportXml(_settingPath, config);
+        }
+
         public void Initial()
         {
             ConfigClass config = ImportXml(_settingPath) as ConfigClass;
@@ -174,7 +199,7 @@ namespace FileTransfer.Configs
                 _monitorSettings = new List<MonitorModel>();
                 _subscribeSettings = new List<SubscribeModel>();
                 _listenPort = 8888;
-                _scanPerid = 5;
+                _scanPerid = 1;
                 _incompleteSendSavePath = @"C:\IncompleteSendFiles";
                 if (!Directory.Exists(_incompleteSendSavePath))
                     Directory.CreateDirectory(_incompleteSendSavePath);
