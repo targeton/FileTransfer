@@ -15,7 +15,9 @@ namespace FileTransfer.Converters
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             if ((bool)value)
-                return Binding.DoNothing;
+            {
+                return Visibility.Visible;
+            }
             else
                 return Visibility.Collapsed;
         }

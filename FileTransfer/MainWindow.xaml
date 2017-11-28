@@ -91,7 +91,12 @@
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Grid Margin="3,1,3,1">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="1*"></ColumnDefinition>
+                                            <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                        </Grid.ColumnDefinitions>
                                         <ProgressBar Value="{Binding Path=TransferPercent}" Minimum="0.0" Maximum="1.0"></ProgressBar>
+                                        <TextBlock Grid.Column="1" Text="{Binding Path=TransferPercent, StringFormat={}{0:P}}" Width="55" Margin="3,0,0,0"></TextBlock>
                                     </Grid>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
@@ -138,7 +143,7 @@
                                     <Setter Property="DetailsVisibility" Value="Collapsed"></Setter>
                                     <Setter Property="ContextMenu">
                                         <Setter.Value>
-                                            <ContextMenu Visibility="{Binding Source={StaticResource Locator}, Path=MainViewModel.MonitorFlag,Converter={StaticResource BoolInverseVisibilityConverter}}">
+                                            <ContextMenu>
                                                 <MenuItem Header="删除" Command="{Binding Path=MainViewModel.DeleteMonitorSettingCommand, Source={StaticResource Locator}}"
                                                           CommandParameter="{Binding Path=PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"></MenuItem>
                                             </ContextMenu>
@@ -217,7 +222,12 @@
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <Grid Margin="3,1,3,1">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="1*"></ColumnDefinition>
+                                                    <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                                </Grid.ColumnDefinitions>
                                                 <ProgressBar Value="{Binding Path=AcceptFilePercent}" Minimum="0" Maximum="1"></ProgressBar>
+                                                <TextBlock Grid.Column="1" Text="{Binding Path=AcceptFilePercent, StringFormat={}{0:P}}" Width="55" Margin="3,0,0,0"></TextBlock>
                                             </Grid>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>

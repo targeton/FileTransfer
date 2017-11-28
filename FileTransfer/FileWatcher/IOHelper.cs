@@ -204,18 +204,18 @@ namespace FileTransfer.FileWatcher
             return false;
         }
 
-        public void SaveUnsendedFiles(List<string> unsendedFiles, string path)
+        public void SaveUnsendedFiles(List<string> unsendedFiles, string originalPath, string savePath)
         {
             try
             {
                 List<string> files = unsendedFiles.Distinct().ToList();
-                if (!Directory.Exists(path))
-                    Directory.CreateDirectory(path);
+                if (!Directory.Exists(savePath))
+                    Directory.CreateDirectory(savePath);
                 foreach (var file in files)
                 {
-                    FileInfo info = new FileInfo(file);
-                    string destFile = Path.Combine(path, info.Name);
-                    File.Copy(file, destFile, true);
+                    string saveFileName = file.Replace(originalPath, savePath);
+                    CheckAndCreateDirectory(saveFileName);
+                    File.Copy(file, saveFileName, true);
                 }
             }
             catch (Exception e)

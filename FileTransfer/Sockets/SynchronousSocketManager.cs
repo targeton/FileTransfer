@@ -151,6 +151,7 @@ namespace FileTransfer.Sockets
                     case "$BTF#":
                         ReceiveFiles(socket);
                         break;
+                    //Delete Monitor Floder
                     case "$DMF#":
                         ReceiveDeleteMonitor(socket);
                         break;
@@ -161,6 +162,7 @@ namespace FileTransfer.Sockets
                     case "$CCR#":
                         SendFeedback(socket);
                         break;
+                    //ON/OffLine
                     case "$OFL#":
                         ReceiveOnlineOfflineInfo(socket);
                         break;
@@ -199,10 +201,13 @@ namespace FileTransfer.Sockets
 
         private void ReceiveUnregeistSubscirbe(Socket socket)
         {
-            //获取要注销的IP地址和监控文件夹信息
-            byte[] receiveBytes = new byte[64];
-            int byteRec = socket.Receive(receiveBytes, 0, 64, SocketFlags.None);
-            string subscribeIp = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
+            //获取要注销的IP、端口和监控文件夹信息
+            string remoteIPStr = ((IPEndPoint)socket.RemoteEndPoint).Address.ToString();
+            byte[] receiveBytes = new byte[4];
+            int byteRec = socket.Receive(receiveBytes, 0, 4, SocketFlags.None);
+            //string subscribeIp = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
+            int remotePort = BitConverter.ToInt32(receiveBytes, 0);
+            string subscribeIp = string.Format("{0}:{1}", remoteIPStr, remotePort);
             receiveBytes = new byte[4];
             byteRec = socket.Receive(receiveBytes, 0, 4, SocketFlags.None);
             int directoryLength = BitConverter.ToInt32(receiveBytes.Take(byteRec).ToArray(), 0);
@@ -220,12 +225,13 @@ namespace FileTransfer.Sockets
         private void ReceiveDeleteMonitor(Socket socket)
         {
             //获取远端发送方的IP信息
-            byte[] receiveBytes = new byte[32];
-            int byteRec = socket.Receive(receiveBytes, 0, 32, SocketFlags.None);
-            string monitorIp = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
+            //byte[] receiveBytes = new byte[32];
+            //int byteRec = socket.Receive(receiveBytes, 0, 32, SocketFlags.None);
+            //string monitorIp = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
+            string monitorIp = ((IPEndPoint)socket.RemoteEndPoint).Address.ToString();
             //获取监控文件夹信息
-            receiveBytes = new byte[4];
-            byteRec = socket.Receive(receiveBytes, 0, 4, SocketFlags.None);
+            byte[] receiveBytes = new byte[4];
+            int byteRec = socket.Receive(receiveBytes, 0, 4, SocketFlags.None);
             int floderLength = BitConverter.ToInt32(receiveBytes.Take(byteRec).ToArray(), 0);
             receiveBytes = new byte[floderLength];
             byteRec = socket.Receive(receiveBytes, 0, floderLength, SocketFlags.None);
@@ -241,12 +247,13 @@ namespace FileTransfer.Sockets
         private void ReceiveFiles(Socket socket)
         {
             //获取远端发送方的IP信息
-            byte[] receiveBytes = new byte[32];
-            int byteRec = socket.Receive(receiveBytes, 0, 32, SocketFlags.None);
-            string monitorIp = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
+            //byte[] receiveBytes = new byte[32];
+            //int byteRec = socket.Receive(receiveBytes, 0, 32, SocketFlags.None);
+            //string monitorIp = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
+            string monitorIp = ((IPEndPoint)socket.RemoteEndPoint).Address.ToString();
             //获取监控文件夹信息
-            receiveBytes = new byte[4];
-            byteRec = socket.Receive(receiveBytes, 0, 4, SocketFlags.None);
+            byte[] receiveBytes = new byte[4];
+            int byteRec = socket.Receive(receiveBytes, 0, 4, SocketFlags.None);
             int floderLength = BitConverter.ToInt32(receiveBytes.Take(byteRec).ToArray(), 0);
             receiveBytes = new byte[floderLength];
             byteRec = socket.Receive(receiveBytes, 0, floderLength, SocketFlags.None);
@@ -257,6 +264,13 @@ namespace FileTransfer.Sockets
             long fileNum = BitConverter.ToInt64(receiveBytes.Take(byteRec).ToArray(), 0);
             //获取接收文件夹集合
             List<string> acceptDirectories = SimpleIoc.Default.GetInstance<MainViewModel>().SubscribeCollection.Where(s => s.MonitorIP == monitorIp && s.MonitorDirectory == monitorDirectory).Select(s => s.AcceptDirectory).ToList();
+            if (acceptDirectories.Count == 0)
+            {
+                string savePath = SimpleIoc.Default.GetInstance<MainViewModel>().SendExceptionSavePath;
+                _logger.Warn(string.Format("{0}发送来的文件无接收设置，转存至{1}！", monitorIp, savePath));
+                RefreshUINotifyText(string.Format("{0}:{1}发送来的文件无接收设置，转存至{2}！", DateTime.Now, monitorIp, savePath));
+                acceptDirectories.Add(savePath);
+            }
             long fileNumIndex = 0;
             while (fileNumIndex < fileNum)
             {
@@ -325,10 +339,16 @@ namespace FileTransfer.Sockets
 
         private void ReceiveSubscribInfo(Socket socket)
         {
-            //获取订阅者IP
-            byte[] ipBytes = new byte[64];
-            int byteRec = socket.Receive(ipBytes, 64, SocketFlags.None);
-            string ipAddressPort = Encoding.Unicode.GetString(ipBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
+            ////获取订阅者IP
+            //byte[] ipBytes = new byte[64];
+            //int byteRec = socket.Receive(ipBytes, 64, SocketFlags.None);
+            //string ipAddressPort = Encoding.Unicode.GetString(ipBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
+            //获取订阅者IP和端口
+            string ipStr = ((IPEndPoint)socket.RemoteEndPoint).Address.ToString();
+            byte[] portBytes = new byte[4];
+            int byteRec = socket.Receive(portBytes, 4, SocketFlags.None);
+            int remotePort = BitConverter.ToInt32(portBytes, 0);
+            string ipAddressPort = string.Format("{0}:{1}", ipStr, remotePort);
             //获取订阅的监控文件夹
             byte[] receiveBytes = new byte[4];
             byteRec = socket.Receive(receiveBytes, 0, 4, SocketFlags.None);
@@ -352,9 +372,12 @@ namespace FileTransfer.Sockets
         private void ReceiveOnlineOfflineInfo(Socket socket)
         {
             //获取要注销的IP地址和监控文件夹信息
-            byte[] receiveBytes = new byte[64];
-            int byteRec = socket.Receive(receiveBytes, 0, 64, SocketFlags.None);
-            string subscribeIp = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
+            string remoteIPStr = ((IPEndPoint)socket.RemoteEndPoint).Address.ToString();
+            byte[] receiveBytes = new byte[4];
+            int byteRec = socket.Receive(receiveBytes, 0, 4, SocketFlags.None);
+            //string subscribeIp = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
+            int remotePort = BitConverter.ToInt32(receiveBytes, 0);
+            string subscribeIp = string.Format("{0}:{1}", remoteIPStr, remotePort);
             receiveBytes = new byte[4];
             byteRec = socket.Receive(receiveBytes, 0, 4, SocketFlags.None);
             int directoryLength = BitConverter.ToInt32(receiveBytes.Take(byteRec).ToArray(), 0);
@@ -582,11 +605,16 @@ namespace FileTransfer.Sockets
                 msgBytes.CopyTo(sendBytes, 0);
                 //发送消息
                 socket.Send(sendBytes, 0, 16, SocketFlags.None);
-                //发送订阅端的IP地址和侦听端口
-                string ipAddressPort = string.Format("{0}:{1}", LocalIPv4, LocalListenPort);
-                sendBytes = new byte[64];
-                Encoding.Unicode.GetBytes(ipAddressPort).CopyTo(sendBytes, 0);
-                socket.Send(sendBytes, 0, 64, SocketFlags.None);
+                ////发送订阅端的IP地址和侦听端口
+                //string ipAddressPort = string.Format("{0}:{1}", LocalIPv4, LocalListenPort);
+                //sendBytes = new byte[64];
+                //Encoding.Unicode.GetBytes(ipAddressPort).CopyTo(sendBytes, 0);
+                //socket.Send(sendBytes, 0, 64, SocketFlags.None);
+                //发送订阅端的侦听端口
+                sendBytes = new byte[4];
+                byte[] portBytes = BitConverter.GetBytes(LocalListenPort);
+                portBytes.CopyTo(sendBytes, 0);
+                socket.Send(sendBytes, 0, 4, SocketFlags.None);
                 //发送订阅的监控文件夹
                 byte[] floderBytes = Encoding.Unicode.GetBytes(monitorDirectory);
                 sendBytes = new byte[4];
@@ -687,11 +715,11 @@ namespace FileTransfer.Sockets
                 msgBytes.CopyTo(sendBytes, 0);
                 //发送消息
                 socket.Send(sendBytes, 0, 16, SocketFlags.None);
-                //发送本地IP
-                sendBytes = new byte[32];
-                byte[] ipBytes = Encoding.Unicode.GetBytes(LocalIPv4);
-                ipBytes.CopyTo(sendBytes, 0);
-                socket.Send(sendBytes, 0, 32, SocketFlags.None);
+                ////发送本地IP
+                //sendBytes = new byte[32];
+                //byte[] ipBytes = Encoding.Unicode.GetBytes(LocalIPv4);
+                //ipBytes.CopyTo(sendBytes, 0);
+                //socket.Send(sendBytes, 0, 32, SocketFlags.None);
                 //发送订阅的监控文件夹
                 sendBytes = new byte[4];
                 byte[] monitorBytes = Encoding.Unicode.GetBytes(monitorDirectory);
@@ -819,11 +847,11 @@ namespace FileTransfer.Sockets
                 socket.Send(sendBytes, 0, 16, SocketFlags.None);
                 //发送本地IP和监控文件夹
                 byte[] directoryBytes = Encoding.Unicode.GetBytes(monitorDirectory);
-                //前32位为本地IPv4,33-36为文件夹byte数组的长度，后面为文件夹byte数组
-                sendBytes = new byte[36 + directoryBytes.Length];
-                Encoding.Unicode.GetBytes(LocalIPv4).CopyTo(sendBytes, 0);
-                BitConverter.GetBytes(directoryBytes.Length).CopyTo(sendBytes, 32);
-                directoryBytes.CopyTo(sendBytes, 36);
+                //前4位为文件夹byte数组的长度，后面为文件夹byte数组
+                sendBytes = new byte[4 + directoryBytes.Length];
+                //Encoding.Unicode.GetBytes(LocalIPv4).CopyTo(sendBytes, 0);
+                BitConverter.GetBytes(directoryBytes.Length).CopyTo(sendBytes, 0);
+                directoryBytes.CopyTo(sendBytes, 4);
                 socket.Send(sendBytes, 0);
                 //接收返回信息
                 byte[] receiveBytes = new byte[16];
@@ -870,14 +898,16 @@ namespace FileTransfer.Sockets
                 msgBytes.CopyTo(sendBytes, 0);
                 //发送消息头
                 socket.Send(sendBytes, 0, 16, SocketFlags.None);
-                //发送本地IP(地址+端口)和监控文件夹
+                //发送本地接收端口和监控文件夹
                 byte[] directoryBytes = Encoding.Unicode.GetBytes(monitorDirectory);
-                string ipStr = string.Format("{0}:{1}", LocalIPv4, LocalListenPort);
-                sendBytes = new byte[68 + directoryBytes.Length];
-                Encoding.Unicode.GetBytes(ipStr).CopyTo(sendBytes, 0);
-                BitConverter.GetBytes(directoryBytes.Length).CopyTo(sendBytes, 64);
-                directoryBytes.CopyTo(sendBytes, 68);
-                socket.Send(sendBytes, 0);
+                //string ipStr = string.Format("{0}:{1}", LocalIPv4, LocalListenPort);
+                int byteLength = 8 + directoryBytes.Length;
+                sendBytes = new byte[byteLength];
+                byte[] portBytes = BitConverter.GetBytes(LocalListenPort);
+                portBytes.CopyTo(sendBytes, 0);
+                BitConverter.GetBytes(directoryBytes.Length).CopyTo(sendBytes, 4);
+                directoryBytes.CopyTo(sendBytes, 8);
+                socket.Send(sendBytes, 0, byteLength, SocketFlags.None);
                 //接收返回信息
                 byte[] receiveBytes = new byte[16];
                 int byteRec = socket.Receive(receiveBytes, 16, SocketFlags.None);
@@ -924,14 +954,16 @@ namespace FileTransfer.Sockets
                 msgBytes.CopyTo(sendBytes, 0);
                 //发送消息头
                 socket.Send(sendBytes, 0, 16, SocketFlags.None);
-                //发送本地IP(地址+端口)和监控文件夹
+                //发送本地端口和监控文件夹
                 byte[] directoryBytes = Encoding.Unicode.GetBytes(monitorDirectory);
-                string ipStr = string.Format("{0}:{1}", LocalIPv4, LocalListenPort);
-                sendBytes = new byte[68 + directoryBytes.Length];
-                Encoding.Unicode.GetBytes(ipStr).CopyTo(sendBytes, 0);
-                BitConverter.GetBytes(directoryBytes.Length).CopyTo(sendBytes, 64);
-                directoryBytes.CopyTo(sendBytes, 68);
-                socket.Send(sendBytes, 0);
+                //string ipStr = string.Format("{0}:{1}", LocalIPv4, LocalListenPort);
+                int byteLength = 8 + directoryBytes.Length;
+                sendBytes = new byte[byteLength];
+                //Encoding.Unicode.GetBytes(ipStr).CopyTo(sendBytes, 0);
+                BitConverter.GetBytes(LocalListenPort).CopyTo(sendBytes, 0);
+                BitConverter.GetBytes(directoryBytes.Length).CopyTo(sendBytes, 4);
+                directoryBytes.CopyTo(sendBytes, 8);
+                socket.Send(sendBytes, 0, byteLength, SocketFlags.None);
                 //发送上线的消息头"$ON#"或者下线的消息头"$OFF#"
                 if (online)
                 {

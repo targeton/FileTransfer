@@ -272,9 +272,9 @@ namespace FileTransfer.ViewModels
             var monitorModel = deleteItem as MonitorModel;
             if (monitorModel == null) return;
             //检查发送标志位（若为true则不允许删除配置）
-            if (SynchronousSocketManager.Instance.SendingFilesFlag)
+            if (!_monitorFlag)
             {
-                MessageBox.Show("当前正在发送文件，不允许删除任何监控配置项！", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("当前正在监控文件夹，不允许删除任何监控配置项！", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             //删除监控配置
@@ -334,8 +334,8 @@ namespace FileTransfer.ViewModels
                 //订阅事件
                 SynchronousSocketManager.Instance.SendFileProgress += ShowSendProgress;
                 SynchronousSocketManager.Instance.AcceptFileProgress += ShowAcceptProgress;
-                SynchronousSocketManager.Instance.CompleteSendFile += ShowCompleteSendFile;
-                SynchronousSocketManager.Instance.CompleteAcceptFile += ShowCompleteAcceptFile;
+                //SynchronousSocketManager.Instance.CompleteSendFile += ShowCompleteSendFile;
+                //SynchronousSocketManager.Instance.CompleteAcceptFile += ShowCompleteAcceptFile;
                 _logger.Info("主窗体加载完毕!");
             });
             t.ContinueWith(v =>

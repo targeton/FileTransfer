@@ -92,7 +92,7 @@ namespace FileTransfer.FileWatcher
                 if (incompleteSendFiles != null && incompleteSendFiles.Count > 0)
                 {
                     var savePath = SimpleIoc.Default.GetInstance<MainViewModel>().SendExceptionSavePath;
-                    IOHelper.Instance.SaveUnsendedFiles(incompleteSendFiles, savePath);
+                    IOHelper.Instance.SaveUnsendedFiles(incompleteSendFiles, _monitorDirectory, savePath);
                 }
                 if (incrementFiles != null && incrementFiles.Count > 0)
                 {
