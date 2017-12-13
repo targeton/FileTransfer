@@ -286,7 +286,7 @@ namespace FileTransfer.Sockets
                 byteRec = socket.Receive(receiveBytes, 0, fileNameLength, SocketFlags.None);
                 string fileName = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
                 //设置接收文件的文件名
-                List<string> acceptFiles = acceptDirectories.Select(d => fileName.Replace(monitorDirectory, d)).ToList();
+                List<string> acceptFiles = acceptDirectories.Select(d => System.IO.Path.Combine(d, fileName.Replace(monitorDirectory, "").TrimStart('\\'))).ToList();
                 //检查文件夹是否存在
                 acceptFiles.ForEach(f => { IOHelper.Instance.CheckAndCreateDirectory(f); });
                 //日志记录

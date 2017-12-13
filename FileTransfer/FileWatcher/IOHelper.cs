@@ -78,6 +78,7 @@ namespace FileTransfer.FileWatcher
         {
             try
             {
+                File.SetAttributes(file, FileAttributes.Normal);
                 File.Delete(file);
             }
             catch (Exception e)
