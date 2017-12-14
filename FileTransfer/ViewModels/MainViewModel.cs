@@ -20,7 +20,7 @@ namespace FileTransfer.ViewModels
     public class MainViewModel : ViewModelBase
     {
         #region 变量
-        private static ILog _logger = LogManager.GetLogger(typeof(MainViewModel));
+        //private static ILog _logger = LogManager.GetLogger(typeof(MainViewModel));
         private System.Timers.Timer _checkConnectTimer;
         #endregion
 
@@ -190,7 +190,7 @@ namespace FileTransfer.ViewModels
                 }
                 catch (Exception e)
                 {
-                    _logger.Error(string.Format("开启监控过程中发生异常！异常信息：{0}", e.Message));
+                    LogHelper.Instance.Logger.Error(string.Format("开启监控过程中发生异常！异常信息：{0}", e.Message));
                     MessageBox.Show("开启监控过程中发生异常！", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
@@ -365,7 +365,7 @@ namespace FileTransfer.ViewModels
                 SynchronousSocketManager.Instance.AcceptFileProgress += ShowAcceptProgress;
                 //SynchronousSocketManager.Instance.CompleteSendFile += ShowCompleteSendFile;
                 //SynchronousSocketManager.Instance.CompleteAcceptFile += ShowCompleteAcceptFile;
-                _logger.Info("主窗体加载完毕!");
+                LogHelper.Instance.Logger.Info("主窗体加载完毕!");
             });
             t.ContinueWith(v =>
             {
@@ -424,7 +424,7 @@ namespace FileTransfer.ViewModels
             //通知监控端订阅端下线
             NotifyOnlineOffline(false);
             SynchronousSocketManager.Instance.StopListening();
-            _logger.Info("主窗体卸载完毕!");
+            LogHelper.Instance.Logger.Info("主窗体卸载完毕!");
         }
 
         private void SaveSettings()
@@ -558,7 +558,7 @@ namespace FileTransfer.ViewModels
             _checkConnectTimer.Interval = 10000;
             _checkConnectTimer.Elapsed += _checkConnectTimer_Elapsed;
             _checkConnectTimer.Start();
-            _logger.Info(string.Format("启动检测远端连接状态的定时起，定时周期为{0}毫秒", _checkConnectTimer.Interval));
+            LogHelper.Instance.Logger.Info(string.Format("启动检测远端连接状态的定时起，定时周期为{0}毫秒", _checkConnectTimer.Interval));
         }
 
         private void DisposeCheckConnectTimer()
@@ -580,7 +580,7 @@ namespace FileTransfer.ViewModels
             }
             catch (Exception exception)
             {
-                _logger.Error(string.Format("定时检测远端连接状态时出现异常，异常为：{0}", exception.Message));
+                LogHelper.Instance.Logger.Error(string.Format("定时检测远端连接状态时出现异常，异常为：{0}", exception.Message));
             }
             finally
             {

@@ -1,4 +1,5 @@
 ﻿using GalaSoft.MvvmLight;
+using NHibernate.Mapping.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,6 +44,18 @@ namespace FileTransfer.Models
             }
         }
 
+        #endregion
+
+        #region 构造函数
+        public ErrorLogModel()
+        { }
+
+        public ErrorLogModel(ErrorLogEntity entity)
+        {
+            _errorOccurTime = entity.LogDate;
+            _errorFlag = entity.LogLevel;
+            _errorContent = entity.LogMessage;
+        }
         #endregion
     }
 }

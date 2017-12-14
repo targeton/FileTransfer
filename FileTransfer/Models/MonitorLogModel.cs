@@ -12,7 +12,7 @@ namespace FileTransfer.Models
     public class MonitorLogModel : ObservableObject
     {
         #region 变量
-        private static ILog _logger = LogManager.GetLogger(typeof(MonitorLogModel));
+        //private static ILog _logger = LogManager.GetLogger(typeof(MonitorLogModel));
         #endregion
 
         #region 属性
@@ -48,6 +48,12 @@ namespace FileTransfer.Models
         {
             MonitorChangedTime = DateTime.ParseExact(changeTime, "yyyy-MM-dd HH:mm:ss", null);
             MonitorChangedFile = file;
+        }
+
+        public MonitorLogModel(MonitorLogEntity entity)
+        {
+            _monitorChangedTime = entity.MonitorDate;
+            _monitorChangedFile = entity.ChangedFile;
         }
         #endregion
     }

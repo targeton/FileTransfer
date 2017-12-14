@@ -15,7 +15,7 @@ namespace FileTransfer.FileWatcher
     public class FileWatcherHelper
     {
         #region 变量
-        private static ILog _logger = LogManager.GetLogger(typeof(FileWatcherHelper));
+        //private static ILog _logger = LogManager.GetLogger(typeof(FileWatcherHelper));
         //保存文件增量发送的类
         private List<SendFileProcess> _sendFileProcessList = new List<SendFileProcess>();
         //记录监控文件夹发生的文件信息变化
@@ -51,7 +51,7 @@ namespace FileTransfer.FileWatcher
             _timer.Interval = SimpleIoc.Default.GetInstance<MainViewModel>().ScanPeriod * 1000;
             _timer.Elapsed += _timer_Elapsed;
             _timer.Start();
-            _logger.Info(string.Format("启动监控文件夹的扫描定时器，定时刷新时间间隔为{0}毫秒", _timer.Interval));
+            LogHelper.Instance.Logger.Info(string.Format("启动监控文件夹的扫描定时器，定时刷新时间间隔为{0}毫秒", _timer.Interval));
         }
 
         private void InitialMonitorChanges(bool ignore = true)
@@ -87,7 +87,7 @@ namespace FileTransfer.FileWatcher
             _timer.Stop();
             _timer.Elapsed -= _timer_Elapsed;
             _timer = null;
-            _logger.Info(string.Format("关闭监控文件夹的扫描定时器"));
+            LogHelper.Instance.Logger.Info(string.Format("关闭监控文件夹的扫描定时器"));
         }
 
         //定时处理任务
@@ -122,10 +122,10 @@ namespace FileTransfer.FileWatcher
                 //如果没有增量，则继续遍历
                 if (incrementFiles == null || incrementFiles.Count <= 0)
                     continue;
-                _logger.Info(string.Format("监控文件夹{0}内新增{1}个文件", monitorDirectory, incrementFiles.Count));
+                LogHelper.Instance.Logger.Info(string.Format("监控文件夹{0}内新增{1}个文件", monitorDirectory, incrementFiles.Count));
                 foreach (var file in incrementFiles)
                 {
-                    _logger.Info(string.Format("[MonitorFile]{0}", file));
+                    LogHelper.Instance.MonitorLogger.Info(file);
                 }
                 //获取当前监控文件夹是否有订阅者(有订阅则记录文件夹内改变)
                 var monitor = SimpleIoc.Default.GetInstance<MainViewModel>().MonitorCollection.FirstOrDefault(m => m.MonitorDirectory == monitorDirectory);

@@ -1,7 +1,9 @@
 ﻿using FileTransfer.Models;
+using FileTransfer.Utils;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using log4net;
+using NHibernate;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -18,7 +20,7 @@ namespace FileTransfer.ViewModels
     {
         #region 变量
         private string _logsFilePath;
-        private static ILog _logger = LogManager.GetLogger(typeof(LogsQueryViewModel));
+        //private static ILog _logger = LogManager.GetLogger(typeof(LogsQueryViewModel));
         private readonly string _fileLogPattern;
         private readonly string _sendLogPattern;
         private readonly string _receiveLogPattern;
@@ -104,13 +106,46 @@ namespace FileTransfer.ViewModels
 
         private void ExecuteLoadCommand()
         {
-            //判断文件夹是否存在
-            if (!Directory.Exists(_logsFilePath)) return;
-            //获取所有日志
-            List<string> logFiles = Directory.GetFiles(_logsFilePath, @"File*.log*").ToList();
-            foreach (var logFile in logFiles)
+            ////判断文件夹是否存在
+            //if (!Directory.Exists(_logsFilePath)) return;
+            ////获取所有日志
+            //List<string> logFiles = Directory.GetFiles(_logsFilePath, @"File*.log*").ToList();
+            //foreach (var logFile in logFiles)
+            //{
+            //    GetLogs(logFile);
+            //}
+            try
             {
-                GetLogs(logFile);
+                using (ISession session = DbAccessHelper.SessionFactory.OpenSession())
+                {
+                    var sendLogResult = session.CreateCriteria(typeof(SendLogEntity)).List<SendLogEntity>();
+                    var receiveLogResult = session.CreateCriteria(typeof(ReceiveLogEntity)).List<ReceiveLogEntity>();
+                    var monitorLogResult = session.CreateCriteria(typeof(MonitorLogEntity)).List<MonitorLogEntity>();
+                    var logResult = session.CreateCriteria(typeof(ErrorLogEntity)).List<ErrorLogEntity>();
+                    System.Windows.Application.Current.Dispatcher.Invoke(new Action(() =>
+                    {
+                        foreach (var log in sendLogResult)
+                        {
+                            SendLogs.Add(new SendLogModel(log));
+                        }
+                        foreach (var log in receiveLogResult)
+                        {
+                            ReceiveLogs.Add(new ReceiveLogModel(log));
+                        }
+                        foreach (var log in monitorLogResult)
+                        {
+                            MonitorLogs.Add(new MonitorLogModel(log));
+                        }
+                        foreach (var log in logResult)
+                        {
+                            ErrorLogs.Add(new ErrorLogModel(log));
+                        }
+                    }), null);
+                }
+            }
+            catch (Exception)
+            {
+                throw;
             }
         }
 
@@ -174,7 +209,7 @@ namespace FileTransfer.ViewModels
             }
             catch (Exception e)
             {
-                _logger.Error(string.Format("加载日志异常！异常信息为：{0}", e.Message));
+                LogHelper.Instance.Logger.Error(string.Format("加载日志异常！异常信息为：{0}", e.Message));
                 MessageBox.Show(string.Format("加载日志异常！异常信息为：{0}", e.Message), "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }

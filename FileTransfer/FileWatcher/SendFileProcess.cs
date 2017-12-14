@@ -17,7 +17,7 @@ namespace FileTransfer.FileWatcher
     public class SendFileProcess
     {
         #region 变量
-        private static ILog _logger = LogManager.GetLogger(typeof(SendFileProcess));
+        //private static ILog _logger = LogManager.GetLogger(typeof(SendFileProcess));
         private ConcurrentQueue<List<string>> _queue = new ConcurrentQueue<List<string>>();
         private Task _sendTask;
         #endregion
@@ -65,7 +65,7 @@ namespace FileTransfer.FileWatcher
                 }
                 catch (Exception e)
                 {
-                    _logger.Warn(string.Format("{0}下的文件发送线程发生异常！异常为：{1}", _monitorDirectory, e.Message));
+                    LogHelper.Instance.Logger.Warn(string.Format("{0}下的文件发送线程发生异常！异常为：{1}", _monitorDirectory, e.Message));
                 }
             }
         }

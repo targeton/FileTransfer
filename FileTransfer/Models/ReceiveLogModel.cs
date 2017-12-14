@@ -69,7 +69,39 @@ namespace FileTransfer.Models
                 RaisePropertyChanged("ReceiveFileState");
             }
         }
-        
+
+        #endregion
+
+        #region 构造函数
+        public ReceiveLogModel()
+        { }
+
+        public ReceiveLogModel(string receiveFile, string monitorIP, string monitorDirectory, string receiveState)
+        {
+            _receiveFileName = receiveFile;
+            _monitorIP = monitorIP;
+            _monitorDirectory = monitorDirectory;
+            _receiveFileState = receiveState;
+        }
+
+        public ReceiveLogModel(DateTime receiveTime, string receiveFile, string monitorIP, string monitorDirectory, string receiveState)
+        {
+            _receiveFileTime = receiveTime;
+            _receiveFileName = receiveFile;
+            _monitorIP = monitorIP;
+            _monitorDirectory = monitorDirectory;
+            _receiveFileState = receiveState;
+        }
+
+        public ReceiveLogModel(ReceiveLogEntity entity)
+        {
+            _receiveFileTime = entity.ReceiveDate;
+            _receiveFileName = entity.ReceiveFile;
+            _monitorIP = entity.MonitorIP;
+            _monitorDirectory = entity.MonitorDirectory;
+            _receiveFileState = entity.ReceiveState;
+        }
+
         #endregion
     }
 }
