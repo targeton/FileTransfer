@@ -40,30 +40,28 @@ namespace FileTransfer.FileWatcher
         #region 方法
         public void Add(List<string> incrementalFiles)
         {
-            if (_sendTask != null && _sendTask.IsCompleted == false)
-            {
-                _queue.Enqueue(incrementalFiles);
-            }
-            else
+            _queue.Enqueue(incrementalFiles);
+            if (_sendTask == null || _sendTask.IsCompleted == true)
             {
                 try
                 {
-                    _sendTask = Task.Factory.StartNew((obj) =>
+                    _sendTask = Task.Factory.StartNew(() =>
                     {
-                        List<string> files = obj as List<string>;
-                        if (files == null) return;
-                        while (files.Count > 0)
+                        while (_queue.Count > 0)
                         {
+                            List<string> files = null;
+                            if (!_queue.TryDequeue(out files))
+                                continue;
+                            if (files == null)
+                                continue;
                             Task<FilesRecord>[] tasks = SynchronousSocketManager.Instance.SendFiles(_monitorDirectory, files);
                             if (tasks != null)
                             {
                                 Task contiuneTask = SaveOrDeleteFiles(tasks);
                                 contiuneTask.Wait();
                             }
-                            if (_queue.IsEmpty || !_queue.TryDequeue(out files))
-                                files = new List<string>();
                         }
-                    }, incrementalFiles);
+                    });
                 }
                 catch (Exception e)
                 {
