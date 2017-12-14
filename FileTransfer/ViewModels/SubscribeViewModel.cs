@@ -15,6 +15,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using FileTransfer.Configs;
+using Microsoft.WindowsAPICodePack.Dialogs;
 
 namespace FileTransfer.ViewModels
 {
@@ -157,11 +158,26 @@ namespace FileTransfer.ViewModels
 
         private void ExecuteSetAcceptFilePathCommand()
         {
-            var dlg = new FolderBrowserDialog();
-            dlg.Description = @"请选择接收文件夹目录";
-            if (dlg.ShowDialog() == DialogResult.OK)
+            int major = System.Environment.OSVersion.Version.Major;
+            if(major<6)
             {
-                AcceptFilePath = dlg.SelectedPath;
+                var dlg = new FolderBrowserDialog();
+                dlg.Description = @"请选择接收文件夹目录";
+                if (dlg.ShowDialog() == DialogResult.OK)
+                {
+                    AcceptFilePath = dlg.SelectedPath;
+                }
+            }
+            else
+            {
+                var dlg = new CommonOpenFileDialog();
+                dlg.Multiselect = false;
+                dlg.IsFolderPicker = true;
+                dlg.Title = @"请选择接收文件夹目录";
+                if (dlg.ShowDialog() == CommonFileDialogResult.Ok)
+                {
+                    AcceptFilePath = dlg.FileName;
+                }
             }
         }
 
