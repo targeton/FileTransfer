@@ -123,9 +123,10 @@ namespace FileTransfer.FileWatcher
                 if (incrementFiles == null || incrementFiles.Count <= 0)
                     continue;
                 LogHelper.Instance.Logger.Info(string.Format("监控文件夹{0}内新增{1}个文件", monitorDirectory, incrementFiles.Count));
+                DateTime monitorTime = DateTime.Now;
                 foreach (var file in incrementFiles)
                 {
-                    LogHelper.Instance.MonitorLogger.Info(file);
+                    LogHelper.Instance.AddLog(new MonitorLogModel(monitorTime, file));
                 }
                 //获取当前监控文件夹是否有订阅者(有订阅则记录文件夹内改变)
                 var monitor = SimpleIoc.Default.GetInstance<MainViewModel>().MonitorCollection.FirstOrDefault(m => m.MonitorDirectory == monitorDirectory);

@@ -19,7 +19,7 @@ namespace FileTransfer.Models
 
         private object LookupProperty(string property, log4net.Core.LoggingEvent loggingEvent)
         {
-            object propertyValue = string.Empty;
+            object propertyValue = null;
             PropertyInfo propertyInfo = loggingEvent.MessageObject.GetType().GetProperty(property);
             if (propertyInfo != null)
                 propertyValue = propertyInfo.GetValue(loggingEvent.MessageObject, null);

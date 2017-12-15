@@ -44,10 +44,15 @@ namespace FileTransfer.Models
         public MonitorLogModel()
         { }
 
-        public MonitorLogModel(string changeTime, string file)
+        public MonitorLogModel(string file)
         {
-            MonitorChangedTime = DateTime.ParseExact(changeTime, "yyyy-MM-dd HH:mm:ss", null);
-            MonitorChangedFile = file;
+            _monitorChangedFile = file;
+        }
+
+        public MonitorLogModel(DateTime changeTime, string file)
+        {
+            _monitorChangedTime = changeTime;
+            _monitorChangedFile = file;
         }
 
         public MonitorLogModel(MonitorLogEntity entity)
