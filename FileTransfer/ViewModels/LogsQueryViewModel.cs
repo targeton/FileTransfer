@@ -118,10 +118,10 @@ namespace FileTransfer.ViewModels
             {
                 using (ISession session = DbAccessHelper.SessionFactory.OpenSession())
                 {
-                    var sendLogResult = session.CreateCriteria(typeof(SendLogEntity)).List<SendLogEntity>();
-                    var receiveLogResult = session.CreateCriteria(typeof(ReceiveLogEntity)).List<ReceiveLogEntity>();
-                    var monitorLogResult = session.CreateCriteria(typeof(MonitorLogEntity)).List<MonitorLogEntity>();
-                    var logResult = session.CreateCriteria(typeof(ErrorLogEntity)).List<ErrorLogEntity>();
+                    var sendLogResult = session.QueryOver<SendLogEntity>().OrderBy(log => log.SendDate).Desc.List();
+                    var receiveLogResult = session.QueryOver<ReceiveLogEntity>().OrderBy(log => log.ReceiveDate).Desc.List();
+                    var monitorLogResult = session.QueryOver<MonitorLogEntity>().OrderBy(log => log.MonitorDate).Desc.List();
+                    var logResult = session.QueryOver<ErrorLogEntity>().OrderBy(log => log.LogDate).Desc.List();
                     System.Windows.Application.Current.Dispatcher.Invoke(new Action(() =>
                     {
                         foreach (var log in sendLogResult)
@@ -143,9 +143,9 @@ namespace FileTransfer.ViewModels
                     }), null);
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                throw;
+                LogHelper.Instance.Logger.Warn(string.Format("从数据库查询日志时，发生异常{0}", e.Message));
             }
         }
 

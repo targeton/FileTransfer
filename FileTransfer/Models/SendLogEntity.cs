@@ -10,7 +10,11 @@ namespace FileTransfer.Models
     [Class(Table = "SendLog")]
     public class SendLogEntity
     {
-        [Id(Name = "SendDate", TypeType = typeof(DateTime), Column = "SendDate")]
+        [Id(Name = "ID", TypeType = typeof(long), Column = "ID")]
+        [Key(1)]
+        [Generator(2, Class = "assigned")]
+        public virtual long ID { get; set; }
+        [Property(TypeType = typeof(DateTime), Column = "SendDate")]
         public virtual DateTime SendDate { get; set; }
         [Property(TypeType = typeof(string), Column = "SendFile")]
         public virtual string SendFile { get; set; }

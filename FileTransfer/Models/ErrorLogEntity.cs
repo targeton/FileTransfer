@@ -8,9 +8,14 @@ using System.Threading.Tasks;
 namespace FileTransfer.Models
 {
     [Class(Table = "ErrorLog")]
+    
     public class ErrorLogEntity
     {
-        [Id(Name = "LogDate", TypeType = typeof(DateTime), Column = "LogDate")]
+        [Id(Name = "ID", TypeType = typeof(long), Column = "ID")]
+        [Key(1)]
+        [Generator(2, Class = "assigned")]
+        public virtual long ID { get; set; }
+        [Property(Column = "LogDate", TypeType = typeof(DateTime))]
         public virtual DateTime LogDate { get; set; }
         [Property(Column = "LogLevel", Length = 10, TypeType = typeof(string))]
         public virtual string LogLevel { get; set; }
