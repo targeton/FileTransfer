@@ -104,18 +104,18 @@
                     </Grid>
                 </Border>
             </TabItem>
-            <TabItem Header="错误日志">
+            <TabItem Header="其他日志">
                 <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="5">
                     <Grid>
                         <dxg:GridControl ItemsSource="{Binding Source={StaticResource Locator}, Path=LogsQueryViewModel.ErrorLogs}">
                             <dxg:GridControl.Columns>
-                                <dxg:GridColumn Header="异常时间" MinWidth="60" Width="200" FieldName="ErrorOccurTime">
+                                <dxg:GridColumn Header="日志时间" MinWidth="60" Width="200" FieldName="ErrorOccurTime">
                                     <dxg:GridColumn.EditSettings>
                                         <dxe:DateEditSettings DisplayFormat="yyyy-MM-dd HH:mm:ss"/>
                                     </dxg:GridColumn.EditSettings>
                                 </dxg:GridColumn>
-                                <dxg:GridColumn Header="异常类型" MinWidth="60" Width="100" FieldName="ErrorFlag"></dxg:GridColumn>
-                                <dxg:GridColumn Header="异常内容" MinWidth="60" Width="800" FieldName="ErrorContent"></dxg:GridColumn>
+                                <dxg:GridColumn Header="日志类型" MinWidth="60" Width="100" FieldName="ErrorFlag"></dxg:GridColumn>
+                                <dxg:GridColumn Header="日志内容" MinWidth="60" Width="800" FieldName="ErrorContent"></dxg:GridColumn>
                             </dxg:GridControl.Columns>
                             <dxg:GridControl.TotalSummary>
                                 <dxg:GridSummaryItem FieldName="ErrorOccurTime" SummaryType="Count"/>

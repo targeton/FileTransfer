@@ -19,45 +19,50 @@ namespace FileTransfer.Utils
         {
             get
             {
-                try
+                if (_sessionFactory == null)
                 {
-                    if (_sessionFactory == null)
-                    {
-                        var config = new Configuration();
-                        string cfgFile = Path.Combine(System.Environment.CurrentDirectory, "Configs", "sqlite.cfg.xml");
-                        config.Configure(cfgFile);
-                        using (MemoryStream ms = new MemoryStream())
-                        {
-                            HbmSerializer.Default.Serialize(ms, typeof(SendLogEntity));
-                            ms.Position = 0;
-                            config.AddInputStream(ms);
-                        }
-                        using (MemoryStream ms = new MemoryStream())
-                        {
-                            HbmSerializer.Default.Serialize(ms, typeof(ReceiveLogEntity));
-                            ms.Position = 0;
-                            config.AddInputStream(ms);
-                        }
-                        using (MemoryStream ms = new MemoryStream())
-                        {
-                            HbmSerializer.Default.Serialize(ms, typeof(MonitorLogEntity));
-                            ms.Position = 0;
-                            config.AddInputStream(ms);
-                        }
-                        using (MemoryStream ms = new MemoryStream())
-                        {
-                            HbmSerializer.Default.Serialize(ms, typeof(ErrorLogEntity));
-                            ms.Position = 0;
-                            config.AddInputStream(ms);
-                        }
-                        _sessionFactory = config.BuildSessionFactory();
-                    }
-                }
-                catch (HibernateException e)
-                {
-                    LogHelper.Instance.Logger.Warn(string.Format("使用NHibernate框架时，发生异常{0}", e.Message));
+                    ConfigSessionFactory();
                 }
                 return _sessionFactory;
+            }
+        }
+
+        private static void ConfigSessionFactory()
+        {
+            try
+            {
+                var config = new Configuration();
+                string cfgFile = Path.Combine(System.Environment.CurrentDirectory, "Configs", "sqlite.cfg.xml");
+                config.Configure(cfgFile);
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    HbmSerializer.Default.Serialize(ms, typeof(SendLogEntity));
+                    ms.Position = 0;
+                    config.AddInputStream(ms);
+                }
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    HbmSerializer.Default.Serialize(ms, typeof(ReceiveLogEntity));
+                    ms.Position = 0;
+                    config.AddInputStream(ms);
+                }
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    HbmSerializer.Default.Serialize(ms, typeof(MonitorLogEntity));
+                    ms.Position = 0;
+                    config.AddInputStream(ms);
+                }
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    HbmSerializer.Default.Serialize(ms, typeof(ErrorLogEntity));
+                    ms.Position = 0;
+                    config.AddInputStream(ms);
+                }
+                _sessionFactory = config.BuildSessionFactory();
+            }
+            catch (HibernateException e)
+            {
+                LogHelper.Instance.Logger.Warn(string.Format("使用NHibernate框架时，发生异常{0}", e.Message));
             }
         }
     }
