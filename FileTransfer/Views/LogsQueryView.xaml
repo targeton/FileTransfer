@@ -43,6 +43,7 @@
                                 <dxg:TableView NavigationStyle="Row" AutoWidth="True" ShowFixedTotalSummary="True" ShowSearchPanelMode="Always" ShowFilterPanelMode="ShowAlways" ShowSearchPanelCloseButton="False" ShowGroupPanel="False"/>
                             </dxg:GridControl.View>
                         </dxg:GridControl>
+                        <Button Width="100" Height="30" Content="刷新" Margin="8" HorizontalAlignment="Right" VerticalAlignment="Top" Command="{Binding LogsQueryViewModel.RefreshSendLogsCommand, Source={StaticResource Locator}}"></Button>
                     </Grid>
                 </Border>
             </TabItem>
@@ -69,15 +70,7 @@
                                 <dxg:TableView NavigationStyle="Row" AutoWidth="True" ShowFixedTotalSummary="True" ShowSearchPanelMode="Always" ShowFilterPanelMode="ShowAlways" ShowSearchPanelCloseButton="False" ShowGroupPanel="False"/>
                             </dxg:GridControl.View>
                         </dxg:GridControl>
-                        <!--<DataGrid Grid.Row="1" ItemsSource="{Binding Source={StaticResource Locator}, Path=LogsQueryViewModel.ReceiveLogs}">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="接收文件名" Width="250" Binding="{Binding Path=ReceiveFileName}"></DataGridTextColumn>
-                                <DataGridTextColumn Header="接收时间" Width="200" Binding="{Binding Path=ReceiveFileTime}"></DataGridTextColumn>
-                                <DataGridTextColumn Header="监控IP" Width="200" Binding="{Binding Path=MonitorIP}"></DataGridTextColumn>
-                                <DataGridTextColumn Header="监控文件夹" Width="250" Binding="{Binding Path=MonitorDirectory}"></DataGridTextColumn>
-                                <DataGridTextColumn Header="接收状态" Width="*" Binding="{Binding Path=ReceiveFileState}"></DataGridTextColumn>
-                            </DataGrid.Columns>
-                        </DataGrid>-->
+                        <Button Width="100" Height="30" Content="刷新" Margin="8" HorizontalAlignment="Right" VerticalAlignment="Top" Command="{Binding LogsQueryViewModel.RefreshReceiveLogsCommand, Source={StaticResource Locator}}"></Button>
                     </Grid>
                 </Border>
             </TabItem>
@@ -101,6 +94,7 @@
                                 <dxg:TableView NavigationStyle="Row" AutoWidth="True" ShowFixedTotalSummary="True" ShowSearchPanelMode="Always" ShowFilterPanelMode="ShowAlways" ShowSearchPanelCloseButton="False" ShowGroupPanel="False"/>
                             </dxg:GridControl.View>
                         </dxg:GridControl>
+                        <Button Width="100" Height="30" Content="刷新" Margin="8" HorizontalAlignment="Right" VerticalAlignment="Top" Command="{Binding LogsQueryViewModel.RefreshMonitorLogsCommand, Source={StaticResource Locator}}"></Button>
                     </Grid>
                 </Border>
             </TabItem>
@@ -125,6 +119,7 @@
                                 <dxg:TableView NavigationStyle="Row" AutoWidth="True" ShowFixedTotalSummary="True" ShowSearchPanelMode="Always" ShowFilterPanelMode="ShowAlways" ShowSearchPanelCloseButton="False" ShowGroupPanel="False"/>
                             </dxg:GridControl.View>
                         </dxg:GridControl>
+                        <Button Width="100" Height="30" Content="刷新" Margin="8" HorizontalAlignment="Right" VerticalAlignment="Top" Command="{Binding LogsQueryViewModel.RefreshErrorLogsCommand, Source={StaticResource Locator}}"></Button>
                     </Grid>
                 </Border>
             </TabItem>
