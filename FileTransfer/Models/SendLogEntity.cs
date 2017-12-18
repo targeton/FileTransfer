@@ -33,5 +33,6 @@ namespace FileTransfer.Models
             SubscribeIP = subscribeIP;
             SendDate = sendDate;
         }
+
     }
 }

@@ -16,7 +16,7 @@ namespace FileTransfer.Configs
     public class ConfigHelper
     {
         #region 只读变量
-        //private static ILog _logger = LogManager.GetLogger(typeof(ConfigHelper));
+        private static ILog _logger = LogManager.GetLogger(typeof(ConfigHelper));
         #endregion
 
         #region 变量
@@ -93,7 +93,7 @@ namespace FileTransfer.Configs
             }
             catch (Exception e)
             {
-                LogHelper.Instance.Logger.Warn(string.Format("配置项序列化时发生错误：{0}", e.Message), e);
+                _logger.Warn(string.Format("配置项序列化时发生错误：{0}", e.Message), e);
                 return string.Empty;
             }
         }
@@ -124,11 +124,11 @@ namespace FileTransfer.Configs
                         sw.Write(xmlContent);
                     }
                 }
-                LogHelper.Instance.Logger.Info(string.Format("配置项转换为Xml成功，存于{0}", filePath));
+                _logger.Info(string.Format("配置项转换为Xml成功，存于{0}", filePath));
             }
             catch (Exception e)
             {
-                LogHelper.Instance.Logger.Warn(string.Format("配置项转换为Xml时出错：{0}", e.Message), e);
+                _logger.Warn(string.Format("配置项转换为Xml时出错：{0}", e.Message), e);
             }
         }
 
@@ -149,7 +149,7 @@ namespace FileTransfer.Configs
             }
             catch (Exception e)
             {
-                LogHelper.Instance.Logger.Warn(string.Format("配置文件反序列化过程中出错：{0}", e.Message), e);
+                _logger.Warn(string.Format("配置文件反序列化过程中出错：{0}", e.Message), e);
                 return null;
             }
         }
@@ -195,7 +195,7 @@ namespace FileTransfer.Configs
             ConfigClass config = ImportXml(_settingPath) as ConfigClass;
             if (config == null)
             {
-                LogHelper.Instance.Logger.Warn("加载配置文件转换异常！采用默认配置。");
+                _logger.Warn("加载配置文件转换异常！采用默认配置。");
                 _monitorSettings = new List<MonitorModel>();
                 _subscribeSettings = new List<SubscribeModel>();
                 _listenPort = 8888;

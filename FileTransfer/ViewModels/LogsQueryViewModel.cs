@@ -19,7 +19,7 @@ namespace FileTransfer.ViewModels
     public class LogsQueryViewModel : ViewModelBase
     {
         #region 变量
-
+        private ILog _logger = LogManager.GetLogger(typeof(LogsQueryViewModel));
         #endregion
 
         #region 属性
@@ -152,7 +152,7 @@ namespace FileTransfer.ViewModels
             }
             catch (Exception e)
             {
-                LogHelper.Instance.Logger.Warn(string.Format("从数据库查询日志时，发生异常{0}", e.Message));
+                _logger.Warn(string.Format("从数据库查询日志时，发生异常{0}", e.Message));
             }
         }
 
@@ -179,7 +179,7 @@ namespace FileTransfer.ViewModels
                 }
                 catch (Exception e)
                 {
-                    LogHelper.Instance.Logger.Warn(string.Format("从数据库查询发送日志时，发生异常{0}", e.Message));
+                    _logger.Warn(string.Format("从数据库查询发送日志时，发生异常{0}", e.Message));
                 }
             });
         }
@@ -207,7 +207,7 @@ namespace FileTransfer.ViewModels
                 }
                 catch (Exception e)
                 {
-                    LogHelper.Instance.Logger.Warn(string.Format("从数据库查询接收日志时，发生异常{0}", e.Message));
+                    _logger.Warn(string.Format("从数据库查询接收日志时，发生异常{0}", e.Message));
                 }
             });
         }
@@ -235,7 +235,7 @@ namespace FileTransfer.ViewModels
                 }
                 catch (Exception e)
                 {
-                    LogHelper.Instance.Logger.Warn(string.Format("从数据库查询监控日志时，发生异常{0}", e.Message));
+                    _logger.Warn(string.Format("从数据库查询监控日志时，发生异常{0}", e.Message));
                 }
             });
         }
@@ -263,7 +263,7 @@ namespace FileTransfer.ViewModels
                 }
                 catch (Exception e)
                 {
-                    LogHelper.Instance.Logger.Warn(string.Format("从数据库查询其他日志时，发生异常{0}", e.Message));
+                    _logger.Warn(string.Format("从数据库查询其他日志时，发生异常{0}", e.Message));
                 }
             });
         }

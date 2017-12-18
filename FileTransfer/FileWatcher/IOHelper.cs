@@ -11,7 +11,7 @@ namespace FileTransfer.FileWatcher
     public class IOHelper
     {
         #region 变量
-        //private static ILog _logger = LogManager.GetLogger(typeof(IOHelper));
+        private static ILog _logger = LogManager.GetLogger(typeof(IOHelper));
         private Dictionary<string, bool> _deleteFilesDic;
         private Dictionary<string, bool> _deleteSubdirectoryDic;
         #endregion
@@ -61,7 +61,7 @@ namespace FileTransfer.FileWatcher
             }
             catch (Exception e)
             {
-                LogHelper.Instance.Logger.Error(string.Format("获取文件夹{0}下的所有文件信息时发生错误！错误信息:{1}", path, e.Message));
+                _logger.Error(string.Format("获取文件夹{0}下的所有文件信息时发生错误！错误信息:{1}", path, e.Message));
                 return null;
             }
         }
@@ -83,7 +83,7 @@ namespace FileTransfer.FileWatcher
             }
             catch (Exception e)
             {
-                LogHelper.Instance.Logger.Error(string.Format(string.Format("删除文件{0}时发生错误！错误信息：{1}", file, e.Message)));
+                _logger.Error(string.Format(string.Format("删除文件{0}时发生错误！错误信息：{1}", file, e.Message)));
             }
         }
 
@@ -102,7 +102,7 @@ namespace FileTransfer.FileWatcher
             }
             catch (Exception e)
             {
-                LogHelper.Instance.Logger.Error(string.Format("获取{0}下的子文件夹信息时发生错误！错误信息为：{1}", path, e.Message));
+                _logger.Error(string.Format("获取{0}下的子文件夹信息时发生错误！错误信息为：{1}", path, e.Message));
                 return null;
             }
         }
@@ -123,7 +123,7 @@ namespace FileTransfer.FileWatcher
             }
             catch (Exception e)
             {
-                LogHelper.Instance.Logger.Error(string.Format(string.Format("删除文件夹{0}时发生错误！错误信息：{1}", directory, e.Message)));
+                _logger.Error(string.Format(string.Format("删除文件夹{0}时发生错误！错误信息：{1}", directory, e.Message)));
             }
         }
 
@@ -221,7 +221,7 @@ namespace FileTransfer.FileWatcher
             }
             catch (Exception e)
             {
-                LogHelper.Instance.Logger.Error(string.Format("文件转存过程中发生异常！异常：{0}", e.Message));
+                _logger.Error(string.Format("文件转存过程中发生异常！异常：{0}", e.Message));
             }
         }
 

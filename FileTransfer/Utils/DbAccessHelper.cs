@@ -1,4 +1,5 @@
 ﻿using FileTransfer.Models;
+using log4net;
 using NHibernate;
 using NHibernate.Cfg;
 using NHibernate.Mapping.Attributes;
@@ -13,6 +14,8 @@ namespace FileTransfer.Utils
 {
     public class DbAccessHelper
     {
+        private static ILog _logger = LogManager.GetLogger(typeof(DbAccessHelper));
+
         private static ISessionFactory _sessionFactory;
 
         public static ISessionFactory SessionFactory
@@ -62,7 +65,7 @@ namespace FileTransfer.Utils
             }
             catch (HibernateException e)
             {
-                LogHelper.Instance.Logger.Warn(string.Format("使用NHibernate框架时，发生异常{0}", e.Message));
+                _logger.Warn(string.Format("使用NHibernate框架时，发生异常{0}", e.Message));
             }
         }
     }
