@@ -126,7 +126,7 @@ namespace FileTransfer.FileWatcher
                 DateTime monitorTime = DateTime.Now;
                 foreach (var file in incrementFiles)
                 {
-                    LogHelper.Instance.AddLog(new MonitorLogModel(monitorTime, file));
+                    LogHelper.Instance.AddLog(new MonitorLogEntity(monitorTime, file));
                 }
                 //获取当前监控文件夹是否有订阅者(有订阅则记录文件夹内改变)
                 var monitor = SimpleIoc.Default.GetInstance<MainViewModel>().MonitorCollection.FirstOrDefault(m => m.MonitorDirectory == monitorDirectory);

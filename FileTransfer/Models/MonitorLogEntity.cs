@@ -18,5 +18,14 @@ namespace FileTransfer.Models
         public virtual DateTime MonitorDate { get; set; }
         [Property(Column = "ChangedFile", TypeType = typeof(string))]
         public virtual string ChangedFile { get; set; }
+
+        public MonitorLogEntity()
+        { }
+
+        public MonitorLogEntity(DateTime monitorDate, string changedFile)
+        {
+            MonitorDate = monitorDate;
+            ChangedFile = changedFile;
+        }
     }
 }

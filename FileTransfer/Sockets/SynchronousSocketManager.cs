@@ -34,10 +34,10 @@ namespace FileTransfer.Sockets
         private IPAddress _localIP;
         private int _localListenPort = -1;
         //private static ILog _logger = LogManager.GetLogger(typeof(SynchronousSocketManager));
-        //为保证每个监控文件夹内的文件发送能够顺序发送（避免并行发送）而设置的变量，以下变量只可以某个单一线程内使用
-        private Dictionary<string, Task> _monitorTaskDic = new Dictionary<string, Task>();
-        //线程安全的字典变量（监控文件夹内文件增量）
-        private ConcurrentDictionary<string, ConcurrentQueue<List<string>>> _monitorIncrementCache = new ConcurrentDictionary<string, ConcurrentQueue<List<string>>>();
+        ////为保证每个监控文件夹内的文件发送能够顺序发送（避免并行发送）而设置的变量，以下变量只可以某个单一线程内使用
+        //private Dictionary<string, Task> _monitorTaskDic = new Dictionary<string, Task>();
+        ////线程安全的字典变量（监控文件夹内文件增量）
+        //private ConcurrentDictionary<string, ConcurrentQueue<List<string>>> _monitorIncrementCache = new ConcurrentDictionary<string, ConcurrentQueue<List<string>>>();
         #endregion
 
         #region 单例
@@ -290,7 +290,7 @@ namespace FileTransfer.Sockets
                 //检查文件夹是否存在
                 acceptFiles.ForEach(f => { IOHelper.Instance.CheckAndCreateDirectory(f); });
                 //日志记录
-                acceptFiles.ForEach(file => { LogHelper.Instance.AddLog(new ReceiveLogModel(DateTime.Now, file, monitorIp, monitorDirectory, @"开始接收")); });
+                acceptFiles.ForEach(file => { LogHelper.Instance.AddLog(new ReceiveLogEntity(DateTime.Now, file, monitorIp, monitorDirectory, @"开始接收")); });
                 //设置文件流
                 List<FileStream> fileStreams = acceptFiles.Select(f => new FileStream(f, FileMode.Create, FileAccess.Write)).ToList();
                 //接收文件
@@ -323,7 +323,7 @@ namespace FileTransfer.Sockets
                     AcceptFileProgress(monitorIp, monitorDirectory, fileName, 1.0);
                 }
                 //日志记录
-                acceptFiles.ForEach(file => { LogHelper.Instance.AddLog(new ReceiveLogModel(DateTime.Now, file, monitorIp, monitorDirectory, @"完成接收")); });
+                acceptFiles.ForEach(file => { LogHelper.Instance.AddLog(new ReceiveLogEntity(DateTime.Now, file, monitorIp, monitorDirectory, @"完成接收")); });
                 //自加一
                 fileNumIndex++;
                 Thread.Sleep(10);
@@ -750,7 +750,7 @@ namespace FileTransfer.Sockets
                     socket.Send(sendBytes, 0, 4, SocketFlags.None);
                     socket.Send(fileNameBytes, 0, fileNameBytes.Length, SocketFlags.None);
                     //日志记录
-                    LogHelper.Instance.AddLog(new SendLogModel(DateTime.Now, file, remoteEndPoint, @"开始发送"));
+                    LogHelper.Instance.AddLog(new SendLogEntity(DateTime.Now, file, remoteEndPoint, @"开始发送"));
                     using (FileStream fs = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read))
                     {
                         long index = 0;
@@ -785,7 +785,7 @@ namespace FileTransfer.Sockets
                     if (SendFileProgress != null)
                         SendFileProgress(monitorDirectory, remoteEndPoint, file, 1.0);
                     //日志记录
-                    LogHelper.Instance.AddLog(new SendLogModel(DateTime.Now, file, remoteEndPoint, @"完成发送"));
+                    LogHelper.Instance.AddLog(new SendLogEntity(DateTime.Now, file, remoteEndPoint, @"完成发送"));
                     //记录发送文件
                     sendedFiles.Add(file);
                 }

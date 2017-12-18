@@ -51,16 +51,19 @@ namespace FileTransfer
                             continue;
                         switch (insertLog.GetType().ToString())
                         {
-                            case "FileTransfer.Models.SendLogModel":
+                            case "FileTransfer.Models.SendLogEntity":
+                                ThreadContext.Properties["SendDate"] = ((FileTransfer.Models.SendLogEntity)insertLog).SendDate;
                                 _sendLogger.Info(insertLog);
                                 break;
-                            case "FileTransfer.Models.ReceiveLogModel":
+                            case "FileTransfer.Models.ReceiveLogEntity":
+                                ThreadContext.Properties["ReceiveDate"] = ((FileTransfer.Models.ReceiveLogEntity)insertLog).ReceiveDate;
                                 _receiveLogger.Info(insertLog);
                                 break;
-                            case "FileTransfer.Models.MonitorLogModel":
+                            case "FileTransfer.Models.MonitorLogEntity":
+                                ThreadContext.Properties["MonitorDate"] = ((FileTransfer.Models.MonitorLogEntity)insertLog).MonitorDate;
                                 _monitorLogger.Info(insertLog);
                                 break;
-                            case "FileTransfer.Models.ErrorLogModel":
+                            case "FileTransfer.Models.ErrorLogEntity":
                                 _logger.Info(insertLog);
                                 break;
                             default:

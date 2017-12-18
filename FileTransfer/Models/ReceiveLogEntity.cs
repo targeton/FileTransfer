@@ -24,5 +24,18 @@ namespace FileTransfer.Models
         public virtual string MonitorDirectory { get; set; }
         [Property(TypeType = typeof(string), Column = "ReceiveState")]
         public virtual string ReceiveState { get; set; }
+
+        public ReceiveLogEntity()
+        { }
+
+        public ReceiveLogEntity(DateTime receiveTime, string receiveFile, string monitoIP, string monitorDirectory, string receiveState)
+        {
+            ReceiveDate = receiveTime;
+            ReceiveFile = receiveFile;
+            MonitorIP = monitoIP;
+            MonitorDirectory = monitorDirectory;
+            ReceiveState = receiveState;
+        }
+
     }
 }
