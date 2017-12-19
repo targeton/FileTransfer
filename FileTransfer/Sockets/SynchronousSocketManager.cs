@@ -12,9 +12,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using FileTransfer.Models;
-using System.Collections.Concurrent;
 using FileTransfer.LogToDb;
 using FileTransfer.DbHelper.Entitys;
 
@@ -94,17 +92,17 @@ namespace FileTransfer.Sockets
         #endregion
 
         #region 事件
-        public delegate void SendFileProgerssEventHandler(string monitor, string remote, string sendFile, double progerss);
-        public SendFileProgerssEventHandler SendFileProgress;
+        //public delegate void SendFileProgerssEventHandler(string monitor, string remote, string sendFile, double progerss);
+        //public SendFileProgerssEventHandler SendFileProgress;
 
-        public delegate void AcceptFileProgressEventHandler(string monitorIp, string monitorDirectory, string sendFile, double progress);
-        public AcceptFileProgressEventHandler AcceptFileProgress;
+        //public delegate void AcceptFileProgressEventHandler(string monitorIp, string monitorDirectory, string sendFile, double progress);
+        //public AcceptFileProgressEventHandler AcceptFileProgress;
 
-        public delegate void CompleteSendFileEventHandler(string monitor);
-        public CompleteSendFileEventHandler CompleteSendFile;
+        //public delegate void CompleteSendFileEventHandler(string monitor);
+        //public CompleteSendFileEventHandler CompleteSendFile;
 
-        public delegate void CompleteAcceptFileEventHandler(string monitorIp, string monitorDirectory);
-        public CompleteAcceptFileEventHandler CompleteAcceptFile;
+        //public delegate void CompleteAcceptFileEventHandler(string monitorIp, string monitorDirectory);
+        //public CompleteAcceptFileEventHandler CompleteAcceptFile;
         #endregion
 
         #region 方法
@@ -134,46 +132,11 @@ namespace FileTransfer.Sockets
                 _recevingFlag = true;
                 //配置Socket的Timeout
                 socket.ReceiveTimeout = SOCKET_RECEIVE_TIMEOUT;
-                byte[] headerBytes = new byte[16];
-                int byteRec = socket.Receive(headerBytes, 0, 16, SocketFlags.None);
-                string headerMsg = Encoding.Unicode.GetString(headerBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
-                switch (headerMsg)
-                {
-                    //Request Monitor Floders
-                    case "$RMF#":
-                        //获取本地监控文件夹信息
-                        List<string> monitorFloders = SimpleIoc.Default.GetInstance<MainViewModel>().MonitorCollection.Select(m => m.MonitorDirectory).ToList();
-                        //通过连接Socket返回（发送）监控文件夹信息
-                        SendMoniterFolders(socket, monitorFloders);
-                        break;
-                    //
-                    case "$RFS#":
-                        ReceiveSubscribInfo(socket);
-                        break;
-                    case "$BTF#":
-                        ReceiveFiles(socket);
-                        break;
-                    //Delete Monitor Floder
-                    case "$DMF#":
-                        ReceiveDeleteMonitor(socket);
-                        break;
-                    case "$DSF#":
-                        ReceiveUnregeistSubscirbe(socket);
-                        break;
-                    //Check Connect Remote
-                    case "$CCR#":
-                        SendFeedback(socket);
-                        break;
-                    //ON/OffLine
-                    case "$OFL#":
-                        ReceiveOnlineOfflineInfo(socket);
-                        break;
-                    default:
-                        string logMsg = string.Format("套接字所接收的通信字节数据无法转换为有效的消息头！");
-                        _logger.Warn(logMsg);
-                        LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "WARN", logMsg));
-                        break;
-                }
+                //获取消息头
+                string headMsg = socket.GetHeadMsg(16);
+                //根据消息头处理
+                ReceiveContext context = new ReceiveContext(headMsg);
+                context.Process(socket);
                 //回复接收标志位
                 _recevingFlag = false;
             }
@@ -199,218 +162,6 @@ namespace FileTransfer.Sockets
             }
         }
 
-        private void SendFeedback(Socket socket)
-        {
-            //发送连接成功的反馈信息(had connected remote)
-            byte[] feedbackBytes = new byte[16];
-            Encoding.Unicode.GetBytes("$HCR#").CopyTo(feedbackBytes, 0);
-            socket.Send(feedbackBytes, 0, 16, SocketFlags.None);
-        }
-
-        private void ReceiveUnregeistSubscirbe(Socket socket)
-        {
-            //获取要注销的IP、端口和监控文件夹信息
-            string remoteIPStr = ((IPEndPoint)socket.RemoteEndPoint).Address.ToString();
-            byte[] receiveBytes = new byte[4];
-            int byteRec = socket.Receive(receiveBytes, 0, 4, SocketFlags.None);
-            //string subscribeIp = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
-            int remotePort = BitConverter.ToInt32(receiveBytes, 0);
-            string subscribeIp = string.Format("{0}:{1}", remoteIPStr, remotePort);
-            receiveBytes = new byte[4];
-            byteRec = socket.Receive(receiveBytes, 0, 4, SocketFlags.None);
-            int directoryLength = BitConverter.ToInt32(receiveBytes.Take(byteRec).ToArray(), 0);
-            receiveBytes = new byte[directoryLength];
-            byteRec = socket.Receive(receiveBytes, 0, directoryLength, SocketFlags.None);
-            string monitorDirectory = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
-            //注销本地订阅信息
-            SimpleIoc.Default.GetInstance<MainViewModel>().RemoveMonitorSetting(monitorDirectory, subscribeIp);
-            //发送断开信息
-            byte[] disconnectBytes = new byte[16];
-            Encoding.Unicode.GetBytes("$DSK#").CopyTo(disconnectBytes, 0);
-            socket.Send(disconnectBytes, 0, 16, SocketFlags.None);
-        }
-
-        private void ReceiveDeleteMonitor(Socket socket)
-        {
-            //获取远端发送方的IP信息
-            //byte[] receiveBytes = new byte[32];
-            //int byteRec = socket.Receive(receiveBytes, 0, 32, SocketFlags.None);
-            //string monitorIp = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
-            string monitorIp = ((IPEndPoint)socket.RemoteEndPoint).Address.ToString();
-            //获取监控文件夹信息
-            byte[] receiveBytes = new byte[4];
-            int byteRec = socket.Receive(receiveBytes, 0, 4, SocketFlags.None);
-            int floderLength = BitConverter.ToInt32(receiveBytes.Take(byteRec).ToArray(), 0);
-            receiveBytes = new byte[floderLength];
-            byteRec = socket.Receive(receiveBytes, 0, floderLength, SocketFlags.None);
-            string monitorDirectory = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
-            //删除本地对应监控的接收配置
-            SimpleIoc.Default.GetInstance<MainViewModel>().RemoveAcceptSettings(monitorIp, monitorDirectory);
-            //发送断开信息
-            byte[] disconnectBytes = new byte[16];
-            Encoding.Unicode.GetBytes("$DSK#").CopyTo(disconnectBytes, 0);
-            socket.Send(disconnectBytes, 0, 16, SocketFlags.None);
-        }
-
-        private void ReceiveFiles(Socket socket)
-        {
-            //获取远端发送方的IP信息
-            //byte[] receiveBytes = new byte[32];
-            //int byteRec = socket.Receive(receiveBytes, 0, 32, SocketFlags.None);
-            //string monitorIp = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
-            string monitorIp = ((IPEndPoint)socket.RemoteEndPoint).Address.ToString();
-            //获取监控文件夹信息
-            byte[] receiveBytes = new byte[4];
-            int byteRec = socket.Receive(receiveBytes, 0, 4, SocketFlags.None);
-            int floderLength = BitConverter.ToInt32(receiveBytes.Take(byteRec).ToArray(), 0);
-            receiveBytes = new byte[floderLength];
-            byteRec = socket.Receive(receiveBytes, 0, floderLength, SocketFlags.None);
-            string monitorDirectory = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
-            //获取文件总数
-            receiveBytes = new byte[8];
-            byteRec = socket.Receive(receiveBytes, 0, 8, SocketFlags.None);
-            long fileNum = BitConverter.ToInt64(receiveBytes.Take(byteRec).ToArray(), 0);
-            //获取接收文件夹集合
-            List<string> acceptDirectories = SimpleIoc.Default.GetInstance<MainViewModel>().SubscribeCollection.Where(s => s.MonitorIP == monitorIp && s.MonitorDirectory == monitorDirectory).Select(s => s.AcceptDirectory).ToList();
-            if (acceptDirectories.Count == 0)
-            {
-                string savePath = SimpleIoc.Default.GetInstance<MainViewModel>().SendExceptionSavePath;
-                string logMsg = string.Format("{0}发送来的文件无接收设置，转存至{1}！", monitorIp, savePath);
-                _logger.Warn(logMsg);
-                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "WARN", logMsg));
-                RefreshUINotifyText(string.Format("{0}:{1}发送来的文件无接收设置，转存至{2}！", DateTime.Now, monitorIp, savePath));
-                acceptDirectories.Add(savePath);
-            }
-            long fileNumIndex = 0;
-            while (fileNumIndex < fileNum)
-            {
-                //获取发送的文件大小
-                receiveBytes = new byte[8];
-                byteRec = socket.Receive(receiveBytes, 0, 8, SocketFlags.None);
-                long fileSize = BitConverter.ToInt64(receiveBytes, 0);
-                //获取发送的文件名
-                receiveBytes = new byte[4];
-                byteRec = socket.Receive(receiveBytes, 0, 4, SocketFlags.None);
-                int fileNameLength = BitConverter.ToInt32(receiveBytes.Take(byteRec).ToArray(), 0);
-                receiveBytes = new byte[fileNameLength];
-                byteRec = socket.Receive(receiveBytes, 0, fileNameLength, SocketFlags.None);
-                string fileName = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
-                //设置接收文件的文件名
-                List<string> acceptFiles = acceptDirectories.Select(d => System.IO.Path.Combine(d, fileName.Replace(monitorDirectory, "").TrimStart('\\'))).ToList();
-                //检查文件夹是否存在
-                acceptFiles.ForEach(f => { IOHelper.Instance.CheckAndCreateDirectory(f); });
-                //日志记录
-                acceptFiles.ForEach(file => { LogHelper.Instance.ReceiveLogger.Add(new ReceiveLogEntity(DateTime.Now, file, monitorIp, monitorDirectory, @"开始接收")); });
-                //设置文件流
-                List<FileStream> fileStreams = acceptFiles.Select(f => new FileStream(f, FileMode.Create, FileAccess.Write)).ToList();
-                //接收文件
-                long index = 0;
-                while (index < fileSize)
-                {
-                    //接收进度事件
-                    if (AcceptFileProgress != null)
-                    {
-                        double progress = index * 1.0 / fileSize;
-                        AcceptFileProgress(monitorIp, monitorDirectory, fileName, progress);
-                    }
-                    fileStreams.ForEach(fs => fs.Seek(index, SeekOrigin.Begin));
-                    int tempSize = 0;
-                    if (index + BUFFER_SIZE < fileSize)
-                        tempSize = BUFFER_SIZE;
-                    else
-                        tempSize = (int)(fileSize - index);
-                    byte[] buffer = new byte[tempSize];
-                    byteRec = socket.Receive(buffer, 0, tempSize, SocketFlags.None);
-                    fileStreams.ForEach(fs => { fs.Write(buffer.Take(byteRec).ToArray(), 0, byteRec); });
-                    index += byteRec;
-                    Thread.Sleep(1);
-                }
-                //关闭文件流
-                fileStreams.ForEach(fs => { fs.Close(); });
-                //接收进度事件
-                if (AcceptFileProgress != null)
-                {
-                    AcceptFileProgress(monitorIp, monitorDirectory, fileName, 1.0);
-                }
-                //日志记录
-                acceptFiles.ForEach(file => { LogHelper.Instance.ReceiveLogger.Add(new ReceiveLogEntity(DateTime.Now, file, monitorIp, monitorDirectory, @"完成接收")); });
-                //自加一
-                fileNumIndex++;
-                Thread.Sleep(10);
-            }
-            //发出所有文件接收完毕事件
-            if (CompleteAcceptFile != null)
-                CompleteAcceptFile(monitorIp, monitorDirectory);
-            //发送断开信息
-            byte[] disconnectBytes = new byte[16];
-            Encoding.Unicode.GetBytes("$DSK#").CopyTo(disconnectBytes, 0);
-            socket.Send(disconnectBytes, 0, 16, SocketFlags.None);
-        }
-
-        private void ReceiveSubscribInfo(Socket socket)
-        {
-            ////获取订阅者IP
-            //byte[] ipBytes = new byte[64];
-            //int byteRec = socket.Receive(ipBytes, 64, SocketFlags.None);
-            //string ipAddressPort = Encoding.Unicode.GetString(ipBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
-            //获取订阅者IP和端口
-            string ipStr = ((IPEndPoint)socket.RemoteEndPoint).Address.ToString();
-            byte[] portBytes = new byte[4];
-            int byteRec = socket.Receive(portBytes, 4, SocketFlags.None);
-            int remotePort = BitConverter.ToInt32(portBytes, 0);
-            string ipAddressPort = string.Format("{0}:{1}", ipStr, remotePort);
-            //获取订阅的监控文件夹
-            byte[] receiveBytes = new byte[4];
-            byteRec = socket.Receive(receiveBytes, 0, 4, SocketFlags.None);
-            int receiveNum = BitConverter.ToInt32(receiveBytes.Take(byteRec).ToArray(), 0);
-            receiveBytes = new byte[receiveNum];
-            byteRec = socket.Receive(receiveBytes, 0, receiveNum, SocketFlags.None);
-            string monitorDirectory = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec);
-            receiveBytes = new byte[16];
-            byteRec = socket.Receive(receiveBytes, 0, 16, SocketFlags.None);
-            string endStr = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
-            if (endStr == @"$EOF#")
-                SimpleIoc.Default.GetInstance<MainViewModel>().CompleteMonitorSetting(monitorDirectory, ipAddressPort);
-            else
-            {
-                string msg = string.Format("接收{0}的订阅信息后，未能成功接收结束消息头（$EOF#）！", ipAddressPort);
-                _logger.Warn(msg);
-                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "WARN", msg));
-            }
-            //发送断开信息
-            byte[] disconnectBytes = new byte[16];
-            Encoding.Unicode.GetBytes("$DSK#").CopyTo(disconnectBytes, 0);
-            socket.Send(disconnectBytes, 0, 16, SocketFlags.None);
-        }
-
-        private void ReceiveOnlineOfflineInfo(Socket socket)
-        {
-            //获取要注销的IP地址和监控文件夹信息
-            string remoteIPStr = ((IPEndPoint)socket.RemoteEndPoint).Address.ToString();
-            byte[] receiveBytes = new byte[4];
-            int byteRec = socket.Receive(receiveBytes, 0, 4, SocketFlags.None);
-            //string subscribeIp = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
-            int remotePort = BitConverter.ToInt32(receiveBytes, 0);
-            string subscribeIp = string.Format("{0}:{1}", remoteIPStr, remotePort);
-            receiveBytes = new byte[4];
-            byteRec = socket.Receive(receiveBytes, 0, 4, SocketFlags.None);
-            int directoryLength = BitConverter.ToInt32(receiveBytes.Take(byteRec).ToArray(), 0);
-            receiveBytes = new byte[directoryLength];
-            byteRec = socket.Receive(receiveBytes, 0, directoryLength, SocketFlags.None);
-            string monitorDirectory = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
-            receiveBytes = new byte[16];
-            byteRec = socket.Receive(receiveBytes, 0, 16, SocketFlags.None);
-            string msg = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
-            //根据msg通知界面
-            bool online = false;
-            if (msg == @"$ON#")
-                online = true;
-            SimpleIoc.Default.GetInstance<MainViewModel>().RefreshConnectStatus(monitorDirectory, subscribeIp, online);
-            //发送断开信息
-            byte[] disconnectBytes = new byte[16];
-            Encoding.Unicode.GetBytes("$DSK#").CopyTo(disconnectBytes, 0);
-            socket.Send(disconnectBytes, 0, 16, SocketFlags.None);
-        }
 
         private Socket TryConnectRemote(IPEndPoint remote)
         {
@@ -573,56 +324,6 @@ namespace FileTransfer.Sockets
             }
         }
 
-        /// <summary>
-        /// 通过连接的客户端Socket将监控文件夹信息发回请求端
-        /// </summary>
-        /// <param name="socket">连接的客户端Socket</param>
-        /// <param name="floders">监控文件夹集合</param>
-        private void SendMoniterFolders(Socket socket, List<string> floders)
-        {
-            try
-            {
-                //配置Socket的发送Timeout
-                socket.SendTimeout = SOCKET_SEND_TIMEOUT;
-                //先发送总个数
-                int floderNum = floders.Count;
-                byte[] numBytes = new byte[4];
-                BitConverter.GetBytes(floderNum).CopyTo(numBytes, 0);
-                socket.Send(numBytes, 0, 4, SocketFlags.None);
-                //依次发送监控目录（先发送字符串转换为byte数组的长度，再发送byte数组）
-                int index = 0;
-                while (index < floderNum)
-                {
-                    numBytes = new byte[4];
-                    byte[] sendBytes = Encoding.Unicode.GetBytes(floders[index]);
-                    BitConverter.GetBytes(sendBytes.Length).CopyTo(numBytes, 0);
-                    socket.Send(numBytes, 0, 4, SocketFlags.None);
-                    socket.Send(sendBytes, 0, sendBytes.Length, SocketFlags.None);
-                    index++;
-                    Thread.Sleep(1);
-                }
-                //最后发送结束标志
-                byte[] endBytes = new byte[16];
-                Encoding.Unicode.GetBytes(@"$EOF#").CopyTo(endBytes, 0);
-                socket.Send(endBytes, 0, 16, SocketFlags.None);
-            }
-            catch (SocketException se)
-            {
-                string msg = string.Format("发送监控文件夹信息时发生套接字异常！SocketException ErroCode:{0}", se.ErrorCode);
-                _logger.Error(msg);
-                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
-                CloseSocket(socket);
-                RefreshUINotifyText(string.Format("{0}：发送监控文件夹信息时发生套接字异常！", DateTime.Now));
-            }
-            catch (Exception e)
-            {
-                string msg = string.Format("发送监控文件夹信息时发生异常！异常信息：{0}", e.Message);
-                _logger.Error(msg);
-                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
-                CloseSocket(socket);
-                RefreshUINotifyText(string.Format("{0}：发送监控文件夹信息时发生异常！", DateTime.Now));
-            }
-        }
 
         public void SendSubscribeInfo(IPEndPoint remote, string monitorDirectory)
         {
@@ -796,8 +497,7 @@ namespace FileTransfer.Sockets
                 foreach (var file in monitorIncrement)
                 {
                     //发送初始进度
-                    if (SendFileProgress != null)
-                        SendFileProgress(monitorDirectory, remoteEndPoint, file, 0.0);
+                    SimpleIoc.Default.GetInstance<MainViewModel>().ShowSendProgress(monitorDirectory, remoteEndPoint, file, 0.0);
                     //发送文件大小
                     sendBytes = new byte[8];
                     long fileSize = UtilHelper.Instance.GetFileSize(file);
@@ -817,11 +517,8 @@ namespace FileTransfer.Sockets
                         while (index < fileSize)
                         {
                             //发送进度事件
-                            if (SendFileProgress != null)
-                            {
-                                double progress = index * 1.0 / fileSize;
-                                SendFileProgress(monitorDirectory, remoteEndPoint, file, progress);
-                            }
+                            double progress = index * 1.0 / fileSize;
+                            SimpleIoc.Default.GetInstance<MainViewModel>().ShowSendProgress(monitorDirectory, remoteEndPoint, file, progress);
                             //设置文件流的当前位置
                             fs.Seek(index, SeekOrigin.Begin);
                             //计算发送长度
@@ -842,16 +539,15 @@ namespace FileTransfer.Sockets
                         }
                     }
                     //发送进度事件
-                    if (SendFileProgress != null)
-                        SendFileProgress(monitorDirectory, remoteEndPoint, file, 1.0);
+                    SimpleIoc.Default.GetInstance<MainViewModel>().ShowSendProgress(monitorDirectory, remoteEndPoint, file, 1.0);
                     //日志记录
                     LogHelper.Instance.SendLogger.Add(new SendLogEntity(DateTime.Now, file, remoteEndPoint, @"完成发送"));
                     //记录发送文件
                     sendedFiles.Add(file);
                 }
-                //发出所有文件发送完毕的事件
-                if (CompleteSendFile != null)
-                    CompleteSendFile(monitorDirectory);
+                ////发出所有文件发送完毕的事件
+                //if (CompleteSendFile != null)
+                //    CompleteSendFile(monitorDirectory);
                 //接收返回信息
                 byte[] receiveBytes = new byte[16];
                 int byteRec = socket.Receive(receiveBytes, 0, 16, SocketFlags.None);

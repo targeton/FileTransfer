@@ -190,6 +190,16 @@
     <Compile Include="Models\SendLogModel.cs" />
     <Compile Include="Models\SubscribeInfoModel.cs" />
     <Compile Include="Models\SubscribeModel.cs" />
+    <Compile Include="Sockets\ReceiveCheckConnect.cs" />
+    <Compile Include="Sockets\ReceiveContext.cs" />
+    <Compile Include="Sockets\ReceiveDeleteMonitor.cs" />
+    <Compile Include="Sockets\ReceiveFiles.cs" />
+    <Compile Include="Sockets\ReceiveOnlineOffline.cs" />
+    <Compile Include="Sockets\ReceiveProcess.cs" />
+    <Compile Include="Sockets\ReceiveRequestMonitor.cs" />
+    <Compile Include="Sockets\ReceiveSubscribeInfo.cs" />
+    <Compile Include="Sockets\ReceiveUnregeistSubscirbe.cs" />
+    <Compile Include="Sockets\SocketUtil.cs" />
     <Compile Include="Sockets\SynchronousSocket.cs" />
     <Compile Include="Sockets\SynchronousSocketManager.cs" />
     <Compile Include="Utils\ProducerConsumerLite.cs" />

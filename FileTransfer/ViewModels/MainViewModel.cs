@@ -365,8 +365,8 @@ namespace FileTransfer.ViewModels
                 ScanPeriod = ConfigHelper.Instance.ScanPeriod;
                 SendExceptionSavePath = ConfigHelper.Instance.IncompleteSendSavePath;
                 //订阅事件
-                SynchronousSocketManager.Instance.SendFileProgress += ShowSendProgress;
-                SynchronousSocketManager.Instance.AcceptFileProgress += ShowAcceptProgress;
+                //SynchronousSocketManager.Instance.SendFileProgress += ShowSendProgress;
+                //SynchronousSocketManager.Instance.AcceptFileProgress += ShowAcceptProgress;
                 //SynchronousSocketManager.Instance.CompleteSendFile += ShowCompleteSendFile;
                 //SynchronousSocketManager.Instance.CompleteAcceptFile += ShowCompleteAcceptFile;
                 _logger.Info("主窗体加载完毕!");
@@ -401,7 +401,7 @@ namespace FileTransfer.ViewModels
             });
         }
 
-        private void ShowAcceptProgress(string monitorIp, string monitorDirectory, string sendFile, double progress)
+        public void ShowAcceptProgress(string monitorIp, string monitorDirectory, string sendFile, double progress)
         {
             SubscribeCollection.Where(s => s.MonitorIP == monitorIp && s.MonitorDirectory == monitorDirectory).ToList().ForEach(s =>
             {
@@ -410,7 +410,7 @@ namespace FileTransfer.ViewModels
             });
         }
 
-        private void ShowSendProgress(string monitor, string remote, string sendFile, double progerss)
+        public void ShowSendProgress(string monitor, string remote, string sendFile, double progerss)
         {
             var monitorModel = MonitorCollection.FirstOrDefault(m => m.MonitorDirectory == monitor);
             if (monitorModel == null) return;

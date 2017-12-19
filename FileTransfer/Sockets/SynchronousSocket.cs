@@ -140,6 +140,7 @@ namespace FileTransfer.Sockets
             _logger.Info(msg);
             LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
         }
+
         #endregion
 
     }

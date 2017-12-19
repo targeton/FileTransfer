@@ -41,6 +41,7 @@ namespace FileTransfer.Utils
                             Consume(consumeQueue);
                             consumeQueue = new List<T>();
                         }
+                        
                     }
                 });
             }
