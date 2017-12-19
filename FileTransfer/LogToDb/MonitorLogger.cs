@@ -13,7 +13,7 @@ namespace FileTransfer.LogToDb
     public class MonitorLogger : LogToSQLiteDb<MonitorLogEntity>
     {
         #region 方法
-        protected override void BatchInsertRows(System.Data.Common.DbConnection conn, List<MonitorLogEntity> rows)
+        protected override void BatchInsertRows(System.Data.Common.DbConnection conn, IEnumerable<MonitorLogEntity> rows)
         {
             DbCommand command = conn.CreateCommand();
             command.CommandText = @"INSERT INTO MonitorLog(MonitorDate,ChangedFile) VALUES(@MonitorDate,@ChangedFile)";

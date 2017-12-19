@@ -13,7 +13,7 @@ namespace FileTransfer.LogToDb
     public class SendLogger : LogToSQLiteDb<SendLogEntity>
     {
         #region 方法
-        protected override void BatchInsertRows(System.Data.Common.DbConnection conn, List<SendLogEntity> rows)
+        protected override void BatchInsertRows(System.Data.Common.DbConnection conn, IEnumerable<SendLogEntity> rows)
         {
             DbCommand command = conn.CreateCommand();
             command.CommandText = @"INSERT INTO SendLog(SendDate,SendFile,SubscribeIP,SendState) VALUES(@SendDate,@SendFile,@SubscribeIP,@SendState)";

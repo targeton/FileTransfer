@@ -13,7 +13,7 @@ namespace FileTransfer.LogToDb
     public class ErrorLogger : LogToSQLiteDb<ErrorLogEntity>
     {
         #region 方法
-        protected override void BatchInsertRows(System.Data.Common.DbConnection conn, List<ErrorLogEntity> rows)
+        protected override void BatchInsertRows(System.Data.Common.DbConnection conn, IEnumerable<ErrorLogEntity> rows)
         {
             DbCommand command = conn.CreateCommand();
             command.CommandText = @"INSERT INTO ErrorLog(LogDate,LogLevel,LogMessage) VALUES(@LogDate,@LogLevel,@LogMessage)";

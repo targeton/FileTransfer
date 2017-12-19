@@ -71,13 +71,16 @@ namespace FileTransfer.FileWatcher
         //    }
         //}
 
-        protected override void Consume(List<string> files)
+        protected override void Consume(IEnumerable<List<string>> filesCollection)
         {
-            Task<FilesRecord>[] tasks = SynchronousSocketManager.Instance.SendFiles(_monitorDirectory, files);
-            if (tasks != null)
+            foreach (var files in filesCollection)
             {
-                Task contiuneTask = SaveOrDeleteFiles(tasks);
-                contiuneTask.Wait();
+                Task<FilesRecord>[] tasks = SynchronousSocketManager.Instance.SendFiles(_monitorDirectory, files);
+                if (tasks != null)
+                {
+                    Task contiuneTask = SaveOrDeleteFiles(tasks);
+                    contiuneTask.Wait();
+                }
             }
         }
 

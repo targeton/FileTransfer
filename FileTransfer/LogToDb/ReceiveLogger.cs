@@ -13,7 +13,7 @@ namespace FileTransfer.LogToDb
     public class ReceiveLogger : LogToSQLiteDb<ReceiveLogEntity>
     {
         #region 方法
-        protected override void BatchInsertRows(System.Data.Common.DbConnection conn, List<ReceiveLogEntity> rows)
+        protected override void BatchInsertRows(System.Data.Common.DbConnection conn, IEnumerable<ReceiveLogEntity> rows)
         {
             DbCommand command = conn.CreateCommand();
             command.CommandText = @"INSERT INTO ReceiveLog(ReceiveDate,ReceiveFile,MonitorIP,MonitorDirectory,ReceiveState) VALUES(@ReceiveDate,@ReceiveFile,@MonitorIP,@MonitorDirectory,@ReceiveState)";

@@ -31,7 +31,7 @@ namespace FileTransfer.Models
             SendDate = sendDate;
             SendFile = sendFile;
             SubscribeIP = subscribeIP;
-            SendDate = sendDate;
+            SendState = sendState;
         }
 
     }
