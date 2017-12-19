@@ -16,6 +16,7 @@ using System.Windows.Forms;
 using FileTransfer.Models;
 using System.Collections.Concurrent;
 using FileTransfer.LogToDb;
+using FileTransfer.DbHelper.Entitys;
 
 namespace FileTransfer.Sockets
 {
@@ -168,7 +169,9 @@ namespace FileTransfer.Sockets
                         ReceiveOnlineOfflineInfo(socket);
                         break;
                     default:
-                        _logger.Warn(string.Format("套接字所接收的通信字节数据无法转换为有效的消息头！"));
+                        string logMsg = string.Format("套接字所接收的通信字节数据无法转换为有效的消息头！");
+                        _logger.Warn(logMsg);
+                        LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "WARN", logMsg));
                         break;
                 }
                 //回复接收标志位
@@ -178,7 +181,9 @@ namespace FileTransfer.Sockets
             {
                 //回复接收标志位
                 _recevingFlag = false;
-                _logger.Error(string.Format("本地接收远端套接字的发送数据时，发生套接字异常！SocketException ErrorCode:{0}", se.ErrorCode));
+                string msg = string.Format("本地接收远端套接字的发送数据时，发生套接字异常！SocketException ErrorCode:{0}", se.ErrorCode);
+                _logger.Error(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
                 CloseSocket(socket);
                 RefreshUINotifyText(string.Format("{0}：本地接收数据时发生套接字异常！套接字错误码：{1}", DateTime.Now, se.ErrorCode));
             }
@@ -186,7 +191,9 @@ namespace FileTransfer.Sockets
             {
                 //回复接收标志位
                 _recevingFlag = false;
-                _logger.Error(string.Format("本地接收远端套接字的发送数据时，发生异常！异常为：{0}", e.Message));
+                string msg = string.Format("本地接收远端套接字的发送数据时，发生异常！异常为：{0}", e.Message);
+                _logger.Error(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
                 CloseSocket(socket);
                 RefreshUINotifyText(string.Format("{0}：本地接收数据时发生异常！", DateTime.Now));
             }
@@ -268,7 +275,9 @@ namespace FileTransfer.Sockets
             if (acceptDirectories.Count == 0)
             {
                 string savePath = SimpleIoc.Default.GetInstance<MainViewModel>().SendExceptionSavePath;
-                _logger.Warn(string.Format("{0}发送来的文件无接收设置，转存至{1}！", monitorIp, savePath));
+                string logMsg = string.Format("{0}发送来的文件无接收设置，转存至{1}！", monitorIp, savePath);
+                _logger.Warn(logMsg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "WARN", logMsg));
                 RefreshUINotifyText(string.Format("{0}:{1}发送来的文件无接收设置，转存至{2}！", DateTime.Now, monitorIp, savePath));
                 acceptDirectories.Add(savePath);
             }
@@ -363,7 +372,11 @@ namespace FileTransfer.Sockets
             if (endStr == @"$EOF#")
                 SimpleIoc.Default.GetInstance<MainViewModel>().CompleteMonitorSetting(monitorDirectory, ipAddressPort);
             else
-                _logger.Warn(string.Format("接收{0}的订阅信息后，未能成功接收结束消息头（$EOF#）！", ipAddressPort));
+            {
+                string msg = string.Format("接收{0}的订阅信息后，未能成功接收结束消息头（$EOF#）！", ipAddressPort);
+                _logger.Warn(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "WARN", msg));
+            }
             //发送断开信息
             byte[] disconnectBytes = new byte[16];
             Encoding.Unicode.GetBytes("$DSK#").CopyTo(disconnectBytes, 0);
@@ -405,7 +418,11 @@ namespace FileTransfer.Sockets
             int connectedCount = 1;
             Socket socket = _client.StartConnecting(remote);
             if (socket == null)
-                _logger.Error(string.Format("第{0}次向远端{1}发起连接失败！", connectedCount, remote));
+            {
+                string msg = string.Format("第{0}次向远端{1}发起连接失败！", connectedCount, remote);
+                _logger.Error(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
+            }
             //连接远端不成功时，再尝试
             while (socket == null && connectedCount < CONNECTED_MAXCOUNT)
             {
@@ -413,7 +430,11 @@ namespace FileTransfer.Sockets
                 socket = _client.StartConnecting(remote);
                 connectedCount++;
                 if (socket == null)
-                    _logger.Error(string.Format("第{0}次向远端{1}发起连接失败！", connectedCount, remote));
+                {
+                    string msg = string.Format("第{0}次向远端{1}发起连接失败！", connectedCount, remote);
+                    _logger.Error(msg);
+                    LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
+                }
             }
             return socket;
         }
@@ -459,7 +480,9 @@ namespace FileTransfer.Sockets
                 socket = TryConnectRemote(remote);
                 if (socket == null)
                 {
-                    _logger.Error(string.Format("请求远端监控文件夹时与远端{0}尝试{1}次（最大连接次数）连接后失败！", remote, CONNECTED_MAXCOUNT));
+                    string msg = string.Format("请求远端监控文件夹时与远端{0}尝试{1}次（最大连接次数）连接后失败！", remote, CONNECTED_MAXCOUNT);
+                    _logger.Error(msg);
+                    LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
                     return null;
                 }
                 //设置Timeout
@@ -479,13 +502,17 @@ namespace FileTransfer.Sockets
             }
             catch (SocketException se)
             {
-                _logger.Error(string.Format("请求远端{0}监控文件夹信息时发生套接字异常！SocketException ErroCode:{1}", remote, se.ErrorCode));
+                string msg = string.Format("请求远端{0}监控文件夹信息时发生套接字异常！SocketException ErroCode:{1}", remote, se.ErrorCode);
+                _logger.Error(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
                 CloseSocket(socket);
                 return null;
             }
             catch (Exception e)
             {
-                _logger.Error(string.Format("请求远端{0}监控文件夹信息时发生异常！异常信息：{1}", remote, e.Message));
+                string msg = string.Format("请求远端{0}监控文件夹信息时发生异常！异常信息：{1}", remote, e.Message);
+                _logger.Error(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
                 CloseSocket(socket);
                 return null;
             }
@@ -518,19 +545,28 @@ namespace FileTransfer.Sockets
                 byteRec = socket.Receive(receiveBytes, 0, 16, SocketFlags.None);
                 string endStr = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
                 if (endStr != @"$EOF#")
-                    _logger.Warn(string.Format("完成监控文件夹信息的接收后接收的反馈消息头异常（$EOF#）!"));
+                {
+                    string msg = string.Format("完成监控文件夹信息的接收后接收的反馈消息头异常（$EOF#）!");
+                    _logger.Warn(msg);
+                    LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "WARN", msg));
+                }
+
                 return moniterFloders;
             }
             catch (SocketException se)
             {
-                _logger.Error(string.Format("接收监控文件夹信息时发生套接字异常！SocketException ErroCode:{0}", se.ErrorCode));
+                string msg = string.Format("接收监控文件夹信息时发生套接字异常！SocketException ErroCode:{0}", se.ErrorCode);
+                _logger.Error(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
                 CloseSocket(socket);
                 RefreshUINotifyText(string.Format("{0}：接收监控文件夹信息时发生套接字异常！", DateTime.Now));
                 return null;
             }
             catch (Exception e)
             {
-                _logger.Error(string.Format("接收监控文件夹信息时发生异常！异常信息：{0}", e.Message));
+                string msg = string.Format("接收监控文件夹信息时发生异常！异常信息：{0}", e.Message);
+                _logger.Error(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
                 CloseSocket(socket);
                 RefreshUINotifyText(string.Format("{0}：接收监控文件夹信息时发生异常！", DateTime.Now));
                 return null;
@@ -572,13 +608,17 @@ namespace FileTransfer.Sockets
             }
             catch (SocketException se)
             {
-                _logger.Error(string.Format("发送监控文件夹信息时发生套接字异常！SocketException ErroCode:{0}", se.ErrorCode));
+                string msg = string.Format("发送监控文件夹信息时发生套接字异常！SocketException ErroCode:{0}", se.ErrorCode);
+                _logger.Error(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
                 CloseSocket(socket);
                 RefreshUINotifyText(string.Format("{0}：发送监控文件夹信息时发生套接字异常！", DateTime.Now));
             }
             catch (Exception e)
             {
-                _logger.Error(string.Format("发送监控文件夹信息时发生异常！异常信息：{0}", e.Message));
+                string msg = string.Format("发送监控文件夹信息时发生异常！异常信息：{0}", e.Message);
+                _logger.Error(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
                 CloseSocket(socket);
                 RefreshUINotifyText(string.Format("{0}：发送监控文件夹信息时发生异常！", DateTime.Now));
             }
@@ -593,7 +633,9 @@ namespace FileTransfer.Sockets
                 socket = TryConnectRemote(remote);
                 if (socket == null)
                 {
-                    _logger.Error(string.Format("发送订阅消息时与远端{0}尝试{1}次（最大连接次数）连接后失败！", remote, CONNECTED_MAXCOUNT));
+                    string logMsg = string.Format("发送订阅消息时与远端{0}尝试{1}次（最大连接次数）连接后失败！", remote, CONNECTED_MAXCOUNT);
+                    _logger.Error(logMsg);
+                    LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", logMsg));
                     RefreshUINotifyText(string.Format("{0}：发送订阅消息时无法与远端{1}连接！", DateTime.Now, remote));
                     return;
                 }
@@ -630,19 +672,28 @@ namespace FileTransfer.Sockets
                 int byteRec = socket.Receive(receiveBytes, 16, SocketFlags.None);
                 string msg = Encoding.Unicode.GetString(receiveBytes, 0, 16).TrimEnd('\0');
                 if (msg != "$DSK#")
-                    _logger.Warn(string.Format("发送订阅信息后接收的反馈消息头异常（值：{0}，与$DSK#不符）！", msg));
+                {
+                    string logMsg = string.Format("发送订阅信息后接收的反馈消息头异常（值：{0}，与$DSK#不符）！", msg);
+                    _logger.Warn(logMsg);
+                    LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "WARN", logMsg));
+                }
+
                 //关闭连接
                 DisconnectSocket(socket);
             }
             catch (SocketException se)
             {
-                _logger.Error(String.Format("向远端{0}发送订阅信息时发生套接字异常！SocketException ErrorCode:{1}", remote, se.ErrorCode));
+                string logMsg = String.Format("向远端{0}发送订阅信息时发生套接字异常！SocketException ErrorCode:{1}", remote, se.ErrorCode);
+                _logger.Error(logMsg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", logMsg));
                 CloseSocket(socket);
                 RefreshUINotifyText(string.Format("{0}：向远端{1}发送订阅信息时发生套接字异常！", DateTime.Now, remote));
             }
             catch (Exception e)
             {
-                _logger.Error(String.Format("向远端{0}发送订阅信息时发生异常！异常：{1}", remote, e.Message));
+                string logMsg = String.Format("向远端{0}发送订阅信息时发生异常！异常：{1}", remote, e.Message);
+                _logger.Error(logMsg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", logMsg));
                 CloseSocket(socket);
                 RefreshUINotifyText(string.Format("{0}：向远端{1}发送订阅信息时发生异常！", DateTime.Now, remote));
             }
@@ -654,14 +705,18 @@ namespace FileTransfer.Sockets
             var monitorModel = SimpleIoc.Default.GetInstance<MainViewModel>().MonitorCollection.FirstOrDefault(m => m.MonitorDirectory == monitorDirectory);
             if (monitorModel == null)
             {
-                _logger.Warn(string.Format("{0}：准备发送{1}下的文件时无法获取订阅信息！", DateTime.Now, monitorDirectory));
+                string msg = string.Format("{0}：准备发送{1}下的文件时无法获取订阅信息！", DateTime.Now, monitorDirectory);
+                _logger.Warn(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "WARN", msg));
                 RefreshUINotifyText(string.Format("{0}：准备发送{1}下的文件时无法获取订阅信息！", DateTime.Now, monitorDirectory));
                 return null;
             }
             List<SubscribeInfoModel> subscribeInfos = monitorModel.SubscribeInfos.ToList();
             if (subscribeInfos == null || subscribeInfos.Count == 0)
             {
-                _logger.Warn(string.Format("{0}：准备发送{1}下的文件时发现无任何订阅信息！", DateTime.Now, monitorDirectory));
+                string msg = string.Format("{0}：准备发送{1}下的文件时发现无任何订阅信息！", DateTime.Now, monitorDirectory);
+                _logger.Warn(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "WARN", msg));
                 RefreshUINotifyText(string.Format("{0}：准备发送{1}下的文件时发现无任何订阅信息！", DateTime.Now, monitorDirectory));
                 return null;
             }
@@ -677,7 +732,9 @@ namespace FileTransfer.Sockets
             }
             catch (Exception e)
             {
-                _logger.Error(string.Format("利用任务并行库（TPL）发送文件过程中发生异常！异常：{0}", e.Message));
+                string msg = string.Format("利用任务并行库（TPL）发送文件过程中发生异常！异常：{0}", e.Message);
+                _logger.Error(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
                 return null;
             }
         }
@@ -702,7 +759,9 @@ namespace FileTransfer.Sockets
                 socket = TryConnectRemote(ep);
                 if (socket == null)
                 {
-                    _logger.Error(string.Format("发送{0}下文件时无法与远端{1}连接", monitorDirectory, remoteEndPoint));
+                    string logMsg = string.Format("发送{0}下文件时无法与远端{1}连接", monitorDirectory, remoteEndPoint);
+                    _logger.Error(logMsg);
+                    LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", logMsg));
                     RefreshUINotifyText(string.Format("{0}：发送{1}下文件时无法与远端{2}连接", DateTime.Now, monitorDirectory, remoteEndPoint));
                     info.CanConnect = false;
                     return record;
@@ -798,19 +857,27 @@ namespace FileTransfer.Sockets
                 int byteRec = socket.Receive(receiveBytes, 0, 16, SocketFlags.None);
                 string msg = Encoding.Unicode.GetString(receiveBytes, 0, 16).TrimEnd('\0');
                 if (msg != "$DSK#")
-                    _logger.Warn(string.Format("向{0}发送所有文件后接收的反馈消息头异常（值：{1}，与$DSK#不符）！", ep, msg));
+                {
+                    string logMsg = string.Format("向{0}发送所有文件后接收的反馈消息头异常（值：{1}，与$DSK#不符）！", ep, msg);
+                    _logger.Warn(logMsg);
+                    LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "WARN", logMsg));
+                }
                 DisconnectSocket(socket);
             }
             catch (SocketException se)
             {
                 CloseSocket(socket);
-                _logger.Error(string.Format("发送{0}下文件至远端{1}过程中发生SocketException！ErroCode：{2}", monitorDirectory, remoteEndPoint, se.ErrorCode));
+                string msg = string.Format("发送{0}下文件至远端{1}过程中发生SocketException！ErroCode：{2}", monitorDirectory, remoteEndPoint, se.ErrorCode);
+                _logger.Error(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
                 RefreshUINotifyText(string.Format("{0}：发送{1}下文件至远端{2}过程中发生SocketException！", DateTime.Now, monitorDirectory, remoteEndPoint));
             }
             catch (Exception e)
             {
                 CloseSocket(socket);
-                _logger.Error(string.Format("发送{0}下文件至远端{1}过程中发生异常！异常：{2}", monitorDirectory, remoteEndPoint, e.Message));
+                string msg = string.Format("发送{0}下文件至远端{1}过程中发生异常！异常：{2}", monitorDirectory, remoteEndPoint, e.Message);
+                _logger.Error(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
                 RefreshUINotifyText(string.Format("{0}：发送{1}下文件至远端{2}过程中发生异常！", DateTime.Now, monitorDirectory, remoteEndPoint));
             }
             finally
@@ -819,7 +886,11 @@ namespace FileTransfer.Sockets
                 record.IncompleteSendFiles = unsendedFiles;
                 if (unsendedFiles.Count > 0)
                     foreach (var file in unsendedFiles)
-                        _logger.Warn(string.Format("未能向{0}发送文件{1}", remoteEndPoint, file));
+                    {
+                        string msg = string.Format("未能向{0}发送文件{1}", remoteEndPoint, file);
+                        _logger.Warn(msg);
+                        LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
+                    }
             }
             return record;
         }
@@ -833,7 +904,9 @@ namespace FileTransfer.Sockets
                 socket = TryConnectRemote(remote);
                 if (socket == null)
                 {
-                    _logger.Error(string.Format("与远端{0}尝试{1}次（最大连接次数）连接后失败！", remote, CONNECTED_MAXCOUNT));
+                    string logMsg = string.Format("与远端{0}尝试{1}次（最大连接次数）连接后失败！", remote, CONNECTED_MAXCOUNT);
+                    _logger.Error(logMsg);
+                    LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", logMsg));
                     RefreshUINotifyText(string.Format("{0}：向远端{1}通知删除监控文件夹信息时连接异常！", DateTime.Now, remote));
                     return;
                 }
@@ -859,19 +932,27 @@ namespace FileTransfer.Sockets
                 int byteRec = socket.Receive(receiveBytes, 16, SocketFlags.None);
                 string msg = Encoding.Unicode.GetString(receiveBytes, 0, 16).TrimEnd('\0');
                 if (msg != "$DSK#")
-                    _logger.Warn(string.Format("向{0}发送删除监控文件夹信息后接收的反馈消息头异常（值：{1}，与$DSK#不符）！", remote, msg));
+                {
+                    string logMsg = string.Format("向{0}发送删除监控文件夹信息后接收的反馈消息头异常（值：{1}，与$DSK#不符）！", remote, msg);
+                    _logger.Warn(logMsg);
+                    LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "WARN", logMsg));
+                }
                 //关闭连接
                 DisconnectSocket(socket);
             }
             catch (SocketException se)
             {
-                _logger.Error(String.Format("向远端发送删除监控文件夹信息时发生套接字异常！SocketException ErrorCode:{0}", se.ErrorCode));
+                string msg = String.Format("向远端发送删除监控文件夹信息时发生套接字异常！SocketException ErrorCode:{0}", se.ErrorCode);
+                _logger.Error(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
                 CloseSocket(socket);
                 RefreshUINotifyText(string.Format("{0}：向远端{1}通知删除监控文件夹信息时套接字异常！ErrorCode：{2}", DateTime.Now, remote, se.ErrorCode));
             }
             catch (Exception e)
             {
-                _logger.Error(String.Format("向远端发送删除监控文件夹信息时发生异常！SocketException ErrorCode:{0}", e.Message));
+                string msg = String.Format("向远端发送删除监控文件夹信息时发生异常！SocketException ErrorCode:{0}", e.Message);
+                _logger.Error(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
                 CloseSocket(socket);
                 RefreshUINotifyText(string.Format("{0}：向远端{1}通知删除监控文件夹信息时异常！", DateTime.Now, remote));
             }
@@ -886,7 +967,9 @@ namespace FileTransfer.Sockets
                 socket = TryConnectRemote(remote);
                 if (socket == null)
                 {
-                    _logger.Error(string.Format("与远端{0}尝试{1}次（最大连接次数）连接后失败！", remote, CONNECTED_MAXCOUNT));
+                    string logMsg = string.Format("与远端{0}尝试{1}次（最大连接次数）连接后失败！", remote, CONNECTED_MAXCOUNT);
+                    _logger.Error(logMsg);
+                    LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", logMsg));
                     RefreshUINotifyText(string.Format("{0}：向远端{1}通知取消订阅监控时连接异常！", DateTime.Now, remote));
                     return;
                 }
@@ -914,19 +997,27 @@ namespace FileTransfer.Sockets
                 int byteRec = socket.Receive(receiveBytes, 16, SocketFlags.None);
                 string msg = Encoding.Unicode.GetString(receiveBytes, 0, 16).TrimEnd('\0');
                 if (msg != "$DSK#")
-                    _logger.Warn(string.Format("向{0}发送注销订阅信息后接收的反馈消息头异常（值：{1}，与$DSK#不符）！", remote, msg));
+                {
+                    string logMsg = string.Format("向{0}发送注销订阅信息后接收的反馈消息头异常（值：{1}，与$DSK#不符）！", remote, msg);
+                    _logger.Warn(logMsg);
+                    LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "WARN", logMsg));
+                }
                 //关闭连接
                 DisconnectSocket(socket);
             }
             catch (SocketException se)
             {
-                _logger.Error(String.Format("向远端发送注销订阅信息时发生套接字异常！SocketException ErrorCode:{0}", se.ErrorCode));
+                string msg = String.Format("向远端发送注销订阅信息时发生套接字异常！SocketException ErrorCode:{0}", se.ErrorCode);
+                _logger.Error(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
                 CloseSocket(socket);
                 RefreshUINotifyText(string.Format("{0}：向远端{1}通知取消订阅监控时套接字异常！异常：{2}", DateTime.Now, remote, se.ErrorCode));
             }
             catch (Exception e)
             {
-                _logger.Error(String.Format("向远端发送注销订阅信息时发生异常！SocketException ErrorCode:{0}", e.Message));
+                string msg = String.Format("向远端发送注销订阅信息时发生异常！SocketException ErrorCode:{0}", e.Message);
+                _logger.Error(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
                 CloseSocket(socket);
                 RefreshUINotifyText(string.Format("{0}：向远端{1}通知取消订阅监控时异常！", DateTime.Now, remote));
             }
@@ -941,7 +1032,9 @@ namespace FileTransfer.Sockets
                 socket = TryConnectRemote(remote);
                 if (socket == null)
                 {
-                    _logger.Error(string.Format("与远端{0}尝试{1}次（最大连接次数）连接后失败！", remote, CONNECTED_MAXCOUNT));
+                    string logMsg = string.Format("与远端{0}尝试{1}次（最大连接次数）连接后失败！", remote, CONNECTED_MAXCOUNT);
+                    _logger.Error(logMsg);
+                    LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", logMsg));
                     RefreshUINotifyText(string.Format("{0}：向远端{1}发送上线下线信息时连接异常！", DateTime.Now, remote));
                     return;
                 }
@@ -989,19 +1082,27 @@ namespace FileTransfer.Sockets
                 int byteRec = socket.Receive(receiveBytes, 16, SocketFlags.None);
                 string msg = Encoding.Unicode.GetString(receiveBytes, 0, 16).TrimEnd('\0');
                 if (msg != "$DSK#")
-                    _logger.Warn(string.Format("向{0}发送上线下线信息后接收的反馈消息头异常（值：{1}，与$DSK#不符）！", remote, msg));
+                {
+                    string logMsg = string.Format("向{0}发送上线下线信息后接收的反馈消息头异常（值：{1}，与$DSK#不符）！", remote, msg);
+                    _logger.Warn(logMsg);
+                    LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "WARN", logMsg));
+                }
                 //关闭连接
                 DisconnectSocket(socket);
             }
             catch (SocketException se)
             {
-                _logger.Error(String.Format("向远端发送上线下线信息时发生套接字异常！SocketException ErrorCode:{0}", se.ErrorCode));
+                string msg = String.Format("向远端发送上线下线信息时发生套接字异常！SocketException ErrorCode:{0}", se.ErrorCode);
+                _logger.Error(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
                 CloseSocket(socket);
                 RefreshUINotifyText(string.Format("{0}：向远端{1}发送上线下线信息时套接字异常！异常：{2}", DateTime.Now, remote, se.ErrorCode));
             }
             catch (Exception e)
             {
-                _logger.Error(String.Format("向远端发送上线下线信息时发生异常！SocketException ErrorCode:{0}", e.Message));
+                string msg = String.Format("向远端发送上线下线信息时发生异常！SocketException ErrorCode:{0}", e.Message);
+                _logger.Error(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
                 CloseSocket(socket);
                 RefreshUINotifyText(string.Format("{0}：向远端{1}发送上线下线信息时异常！", DateTime.Now, remote));
             }
@@ -1024,11 +1125,15 @@ namespace FileTransfer.Sockets
             }
             catch (SocketException se)
             {
-                _logger.Error(string.Format("Socket进行DisConnect操作时，发生套接字异常！ErrorCode：{0}", se.ErrorCode));
+                string msg = string.Format("Socket进行DisConnect操作时，发生套接字异常！ErrorCode：{0}", se.ErrorCode);
+                _logger.Error(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
             }
             catch (Exception e)
             {
-                _logger.Error(string.Format("Socket进行DisConnect操作时，发生异常！异常：{0}", e.Message));
+                string msg = string.Format("Socket进行DisConnect操作时，发生异常！异常：{0}", e.Message);
+                _logger.Error(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
             }
             finally
             {

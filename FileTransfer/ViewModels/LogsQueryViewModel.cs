@@ -1,4 +1,6 @@
-﻿using FileTransfer.Models;
+﻿using FileTransfer.DbHelper;
+using FileTransfer.DbHelper.Entitys;
+using FileTransfer.Models;
 using FileTransfer.Utils;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
@@ -7,12 +9,7 @@ using NHibernate;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace FileTransfer.ViewModels
 {

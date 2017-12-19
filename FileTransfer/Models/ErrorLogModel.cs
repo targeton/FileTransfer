@@ -1,4 +1,5 @@
-﻿using GalaSoft.MvvmLight;
+﻿using FileTransfer.DbHelper.Entitys;
+using GalaSoft.MvvmLight;
 using NHibernate.Mapping.Attributes;
 using System;
 using System.Collections.Generic;

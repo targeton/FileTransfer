@@ -5,10 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FileTransfer.Models
+namespace FileTransfer.DbHelper.Entitys
 {
     [Class(Table = "ErrorLog")]
-    
+
     public class ErrorLogEntity
     {
         [Id(Name = "ID", TypeType = typeof(long), Column = "ID")]
@@ -21,5 +21,15 @@ namespace FileTransfer.Models
         public virtual string LogLevel { get; set; }
         [Property(Column = "LogMessage", TypeType = typeof(string))]
         public virtual string LogMessage { get; set; }
+
+        public ErrorLogEntity()
+        { }
+
+        public ErrorLogEntity(DateTime logDate, string logLevel, string logMessage)
+        {
+            LogDate = logDate;
+            LogLevel = logLevel;
+            LogMessage = logMessage;
+        }
     }
 }

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FileTransfer.Models
+namespace FileTransfer.DbHelper.Entitys
 {
     [Class(Table = "SendLog")]
     public class SendLogEntity

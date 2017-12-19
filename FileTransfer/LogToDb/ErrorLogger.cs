@@ -1,4 +1,5 @@
-﻿using FileTransfer.Models;
+﻿using FileTransfer.DbHelper.Entitys;
+using FileTransfer.Models;
 using System;
 using System.Collections.Generic;
 using System.Data;

@@ -1,7 +1,7 @@
 ﻿using log4net.Layout.Pattern;
 using System.Reflection;
 
-namespace FileTransfer.Models
+namespace FileTransfer.Log4NetLayout
 {
     public class CustomLogPatternConveter : PatternLayoutConverter
     {

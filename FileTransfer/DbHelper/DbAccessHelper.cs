@@ -1,4 +1,6 @@
-﻿using FileTransfer.Models;
+﻿using FileTransfer.DbHelper.Entitys;
+using FileTransfer.LogToDb;
+using FileTransfer.Models;
 using log4net;
 using NHibernate;
 using NHibernate.Cfg;
@@ -10,7 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FileTransfer.Utils
+namespace FileTransfer.DbHelper
 {
     public class DbAccessHelper
     {
@@ -65,7 +67,9 @@ namespace FileTransfer.Utils
             }
             catch (HibernateException e)
             {
-                _logger.Warn(string.Format("使用NHibernate框架时，发生异常{0}", e.Message));
+                string msg = string.Format("使用NHibernate框架时，发生异常{0}", e.Message);
+                _logger.Warn(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "WARN", msg));
             }
         }
     }

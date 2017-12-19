@@ -1,4 +1,6 @@
-﻿using log4net;
+﻿using FileTransfer.DbHelper.Entitys;
+using FileTransfer.LogToDb;
+using log4net;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -61,7 +63,9 @@ namespace FileTransfer.FileWatcher
             }
             catch (Exception e)
             {
-                _logger.Error(string.Format("获取文件夹{0}下的所有文件信息时发生错误！错误信息:{1}", path, e.Message));
+                string msg = string.Format("获取文件夹{0}下的所有文件信息时发生错误！错误信息:{1}", path, e.Message);
+                _logger.Error(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
                 return null;
             }
         }
@@ -83,7 +87,9 @@ namespace FileTransfer.FileWatcher
             }
             catch (Exception e)
             {
-                _logger.Error(string.Format(string.Format("删除文件{0}时发生错误！错误信息：{1}", file, e.Message)));
+                string msg = string.Format("删除文件{0}时发生错误！错误信息：{1}", file, e.Message);
+                _logger.Error(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
             }
         }
 
@@ -102,7 +108,9 @@ namespace FileTransfer.FileWatcher
             }
             catch (Exception e)
             {
-                _logger.Error(string.Format("获取{0}下的子文件夹信息时发生错误！错误信息为：{1}", path, e.Message));
+                string msg = string.Format("获取{0}下的子文件夹信息时发生错误！错误信息为：{1}", path, e.Message);
+                _logger.Error(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
                 return null;
             }
         }
@@ -123,7 +131,9 @@ namespace FileTransfer.FileWatcher
             }
             catch (Exception e)
             {
-                _logger.Error(string.Format(string.Format("删除文件夹{0}时发生错误！错误信息：{1}", directory, e.Message)));
+                string msg = string.Format("删除文件夹{0}时发生错误！错误信息：{1}", directory, e.Message);
+                _logger.Error(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
             }
         }
 
@@ -221,7 +231,9 @@ namespace FileTransfer.FileWatcher
             }
             catch (Exception e)
             {
-                _logger.Error(string.Format("文件转存过程中发生异常！异常：{0}", e.Message));
+                string msg = string.Format("文件转存过程中发生异常！异常：{0}", e.Message);
+                _logger.Error(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
             }
         }
 

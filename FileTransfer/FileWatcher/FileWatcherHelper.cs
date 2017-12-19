@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
 using FileTransfer.LogToDb;
+using FileTransfer.DbHelper.Entitys;
 
 namespace FileTransfer.FileWatcher
 {
@@ -123,7 +124,9 @@ namespace FileTransfer.FileWatcher
                 //如果没有增量，则继续遍历
                 if (incrementFiles == null || incrementFiles.Count <= 0)
                     continue;
-                _logger.Info(string.Format("监控文件夹{0}内新增{1}个文件", monitorDirectory, incrementFiles.Count));
+                string infoMsg = string.Format("监控文件夹{0}内新增{1}个文件", monitorDirectory, incrementFiles.Count);
+                _logger.Info(infoMsg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "INFO", infoMsg));
                 DateTime monitorTime = DateTime.Now;
                 foreach (var file in incrementFiles)
                 {

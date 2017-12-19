@@ -1,4 +1,6 @@
-﻿using FileTransfer.Models;
+﻿using FileTransfer.DbHelper.Entitys;
+using FileTransfer.LogToDb;
+using FileTransfer.Models;
 using FileTransfer.ViewModels;
 using GalaSoft.MvvmLight.Ioc;
 using log4net;
@@ -93,7 +95,9 @@ namespace FileTransfer.Configs
             }
             catch (Exception e)
             {
-                _logger.Warn(string.Format("配置项序列化时发生错误：{0}", e.Message), e);
+                string msg = string.Format("配置项序列化时发生错误：{0}", e.Message);
+                _logger.Warn(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "WARN", msg));
                 return string.Empty;
             }
         }
@@ -128,7 +132,9 @@ namespace FileTransfer.Configs
             }
             catch (Exception e)
             {
-                _logger.Warn(string.Format("配置项转换为Xml时出错：{0}", e.Message), e);
+                string msg = string.Format("配置项转换为Xml时出错：{0}", e.Message);
+                _logger.Warn(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
             }
         }
 
@@ -149,7 +155,9 @@ namespace FileTransfer.Configs
             }
             catch (Exception e)
             {
-                _logger.Warn(string.Format("配置文件反序列化过程中出错：{0}", e.Message), e);
+                string msg = string.Format("配置文件反序列化过程中出错：{0}", e.Message);
+                _logger.Warn(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
                 return null;
             }
         }
@@ -195,7 +203,9 @@ namespace FileTransfer.Configs
             ConfigClass config = ImportXml(_settingPath) as ConfigClass;
             if (config == null)
             {
-                _logger.Warn("加载配置文件转换异常！采用默认配置。");
+                string msg = "加载配置文件转换异常！采用默认配置。";
+                _logger.Warn(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
                 _monitorSettings = new List<MonitorModel>();
                 _subscribeSettings = new List<SubscribeModel>();
                 _listenPort = 8888;

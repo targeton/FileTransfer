@@ -1,4 +1,6 @@
-﻿using FileTransfer.ViewModels;
+﻿using FileTransfer.DbHelper.Entitys;
+using FileTransfer.LogToDb;
+using FileTransfer.ViewModels;
 using GalaSoft.MvvmLight.Ioc;
 using log4net;
 using System;
@@ -59,14 +61,18 @@ namespace FileTransfer.Sockets
                 //ErrorCode:10004 表示操作被取消，即阻塞的监听被取消
                 if (se.ErrorCode == 10004)
                     return;
-                _logger.Fatal(string.Format("启动本地端口{0}侦听发生套接字异常！SocketException ErrorCode:{1}", port, se.ErrorCode));
+                string msg = string.Format("启动本地端口{0}侦听发生套接字异常！SocketException ErrorCode:{1}", port, se.ErrorCode);
+                _logger.Fatal(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "FATAL", msg));
                 CloseSocket(_listenSocket);
                 MessageBox.Show("启动本地侦听时发生套接字异常！", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 SimpleIoc.Default.GetInstance<MainViewModel>().CanSetListenPort = true;
             }
             catch (Exception e)
             {
-                _logger.Error(string.Format("启动本地侦听时发生异常！异常：{0}", e.Message));
+                string msg = string.Format("启动本地侦听时发生异常！异常：{0}", e.Message);
+                _logger.Error(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
                 CloseSocket(_listenSocket);
                 MessageBox.Show("启动本地侦听时发生异常！", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 SimpleIoc.Default.GetInstance<MainViewModel>().CanSetListenPort = true;
@@ -81,12 +87,16 @@ namespace FileTransfer.Sockets
             }
             catch (SocketException se)
             {
-                _logger.Fatal(string.Format("关闭本地监听发生套接字异常！SocketException ErrorCode:{0}", se.ErrorCode));
+                string msg = string.Format("关闭本地监听发生套接字异常！SocketException ErrorCode:{0}", se.ErrorCode);
+                _logger.Fatal(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "FATAL", msg));
                 MessageBox.Show("关闭本地侦听时发生套接字异常！", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception e)
             {
-                _logger.Error(string.Format("关闭本地监听发生异常！异常：{0}", e.Message));
+                string msg = string.Format("关闭本地监听发生异常！异常：{0}", e.Message);
+                _logger.Error(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
                 MessageBox.Show("关闭本地侦听时发生异常！", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -107,12 +117,16 @@ namespace FileTransfer.Sockets
             }
             catch (SocketException se)
             {
-                _logger.Error(string.Format("向远端{0}发起连接时发生套接字异常！SocketException ErrorCode:{1}", ep, se.ErrorCode));
+                string msg = string.Format("向远端{0}发起连接时发生套接字异常！SocketException ErrorCode:{1}", ep, se.ErrorCode);
+                _logger.Error(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
                 return null;
             }
             catch (Exception e)
             {
-                _logger.Error(string.Format("向远端{0}发起连接时发生异常！异常：{1}", ep, e.Message));
+                string msg = string.Format("向远端{0}发起连接时发生异常！异常：{1}", ep, e.Message);
+                _logger.Error(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
                 return null;
             }
         }
@@ -122,7 +136,9 @@ namespace FileTransfer.Sockets
             if (_listenSocket == null) return;
             _listenSocket.Close();
             _listenSocket = null;
-            _logger.Info(string.Format("关闭本地侦听Socket并释放所有关联资源"));
+            string msg = string.Format("关闭本地侦听Socket并释放所有关联资源");
+            _logger.Info(msg);
+            LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
         }
         #endregion
 

@@ -1,5 +1,7 @@
 ﻿using FileTransfer.Configs;
+using FileTransfer.DbHelper.Entitys;
 using FileTransfer.FileWatcher;
+using FileTransfer.LogToDb;
 using FileTransfer.Models;
 using FileTransfer.Sockets;
 using FileTransfer.Utils;
@@ -190,7 +192,9 @@ namespace FileTransfer.ViewModels
                 }
                 catch (Exception e)
                 {
-                    _logger.Error(string.Format("开启监控过程中发生异常！异常信息：{0}", e.Message));
+                    string msg = string.Format("开启监控过程中发生异常！异常信息：{0}", e.Message);
+                    _logger.Error(msg);
+                    LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
                     MessageBox.Show("开启监控过程中发生异常！", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
@@ -580,7 +584,9 @@ namespace FileTransfer.ViewModels
             }
             catch (Exception exception)
             {
-                _logger.Error(string.Format("定时检测远端连接状态时出现异常，异常为：{0}", exception.Message));
+                string msg = string.Format("定时检测远端连接状态时出现异常，异常为：{0}", exception.Message);
+                _logger.Error(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
             }
             finally
             {

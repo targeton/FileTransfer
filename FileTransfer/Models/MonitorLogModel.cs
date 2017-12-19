@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using GalaSoft.MvvmLight;
 using log4net;
+using FileTransfer.DbHelper.Entitys;
 
 namespace FileTransfer.Models
 {

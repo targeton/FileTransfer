@@ -1,6 +1,6 @@
 ﻿using log4net.Layout;
 
-namespace FileTransfer.Models
+namespace FileTransfer.Log4NetLayout
 {
     public class CustomLogLayout : PatternLayout
     {

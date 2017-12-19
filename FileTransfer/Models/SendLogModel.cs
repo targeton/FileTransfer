@@ -1,4 +1,5 @@
-﻿using GalaSoft.MvvmLight;
+﻿using FileTransfer.DbHelper.Entitys;
+using GalaSoft.MvvmLight;
 using System;
 using System.Collections.Generic;
 using System.Linq;
