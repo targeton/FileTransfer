@@ -38,7 +38,7 @@ namespace FileTransfer.IO
 
         #region 方法
 
-        public bool HasMonitorDirectory(string path)
+        public bool HasDirectory(string path)
         {
             if (Directory.Exists(path))
                 return true;

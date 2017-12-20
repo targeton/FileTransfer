@@ -47,7 +47,7 @@ namespace FileTransfer.Sockets
             //List<string> acceptDirectories = SimpleIoc.Default.GetInstance<MainViewModel>().SubscribeCollection.Where(s => s.MonitorIP == monitorIp && s.MonitorDirectory == monitorDirectory).Select(s => s.AcceptDirectory).ToList();
             //if (acceptDirectories.Count == 0)
             //{
-            //    string savePath = SimpleIoc.Default.GetInstance<MainViewModel>().SendExceptionSavePath;
+            //    string savePath = SimpleIoc.Default.GetInstance<MainViewModel>().ExceptionSavePath;
             //    string logMsg = string.Format("{0}发送来的文件无接收设置，转存至{1}！", monitorIp, savePath);
             //    _logger.Warn(logMsg);
             //    LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "WARN", logMsg));

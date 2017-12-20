@@ -114,15 +114,15 @@ namespace FileTransfer.ViewModels
             }
         }
 
-        private string _sendExceptionSavePath;
+        private string _exceptionSavePath;
 
-        public string SendExceptionSavePath
+        public string ExceptionSavePath
         {
-            get { return _sendExceptionSavePath; }
+            get { return _exceptionSavePath; }
             set
             {
-                _sendExceptionSavePath = value;
-                RaisePropertyChanged("SendExceptionSavePath");
+                _exceptionSavePath = value;
+                RaisePropertyChanged("ExceptionSavePath");
             }
         }
 
@@ -218,7 +218,7 @@ namespace FileTransfer.ViewModels
             }
             foreach (var monitor in MonitorCollection)
             {
-                if (IOHelper.Instance.HasMonitorDirectory(monitor.MonitorDirectory))
+                if (IOHelper.Instance.HasDirectory(monitor.MonitorDirectory))
                     continue;
                 MessageBox.Show(string.Format("当前计算机内不存在{0}监控文件夹！请检查", monitor.MonitorDirectory), "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
@@ -257,7 +257,7 @@ namespace FileTransfer.ViewModels
                 MessageBox.Show("未选中任何文件夹！", "提醒", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
-            if (IOHelper.Instance.IsConflict(selectedPath, SendExceptionSavePath))
+            if (IOHelper.Instance.IsConflict(selectedPath, ExceptionSavePath))
             {
                 MessageBox.Show("所选文件夹与发送异常转存路径冲突！", "提醒", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
@@ -364,7 +364,7 @@ namespace FileTransfer.ViewModels
                 SubscribeCollection = new ObservableCollection<SubscribeModel>(subscribeTemp);
                 ListenPort = ConfigHelper.Instance.ListenPort;
                 ScanPeriod = ConfigHelper.Instance.ScanPeriod;
-                SendExceptionSavePath = ConfigHelper.Instance.IncompleteSendSavePath;
+                ExceptionSavePath = ConfigHelper.Instance.ExceptionSavePath;
                 //订阅事件
                 //SynchronousSocketManager.Instance.SendFileProgress += ShowSendProgress;
                 //SynchronousSocketManager.Instance.AcceptFileProgress += ShowAcceptProgress;
@@ -435,7 +435,7 @@ namespace FileTransfer.ViewModels
         {
             var monitors = MonitorCollection.ToList();
             var subscribes = SubscribeCollection.ToList();
-            ConfigHelper.Instance.SaveSettings(monitors, subscribes, ListenPort, ScanPeriod, SendExceptionSavePath);
+            ConfigHelper.Instance.SaveSettings(monitors, subscribes, ListenPort, ScanPeriod, ExceptionSavePath);
         }
 
         private bool CanExecuteAddSubscibeCommand()
@@ -484,7 +484,7 @@ namespace FileTransfer.ViewModels
                         return;
                     }
                 }
-                SendExceptionSavePath = selectedPath;
+                ExceptionSavePath = selectedPath;
             }
         }
 

@@ -42,12 +42,12 @@ namespace FileTransfer.Configs
             set { _scanPeriod = value; }
         }
 
-        private string _incompleteSendSavePath;
+        private string _exceptionSavePath;
         [XmlElement("IncompleteSendSavePath")]
-        public string IncompleteSendSavePath
+        public string ExceptionSavePath
         {
-            get { return _incompleteSendSavePath; }
-            set { _incompleteSendSavePath = value; }
+            get { return _exceptionSavePath; }
+            set { _exceptionSavePath = value; }
         }
 
 
@@ -63,7 +63,7 @@ namespace FileTransfer.Configs
             SubscribeSettings = subscribes;
             ListenPort = listenPort;
             ScanPeriod = scanPeriod;
-            IncompleteSendSavePath = savePath;
+            ExceptionSavePath = savePath;
         }
         #endregion
     }

@@ -101,7 +101,7 @@ namespace FileTransfer.FileWatcher
             List<MonitorChanges> changes = new List<MonitorChanges>();
             foreach (string monitorDirectory in keyList)
             {
-                if (!IOHelper.Instance.HasMonitorDirectory(monitorDirectory))
+                if (!IOHelper.Instance.HasDirectory(monitorDirectory))
                     continue;
                 //获取现有文件信息
                 List<string> nowFiles = IOHelper.Instance.GetAllFiles(monitorDirectory);

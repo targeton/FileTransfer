@@ -59,11 +59,11 @@ namespace FileTransfer.Configs
             get { return _scanPerid; }
         }
 
-        private string _incompleteSendSavePath;
+        private string _exceptionSavePath;
 
-        public string IncompleteSendSavePath
+        public string ExceptionSavePath
         {
-            get { return _incompleteSendSavePath; }
+            get { return _exceptionSavePath; }
         }
 
         #endregion
@@ -168,7 +168,7 @@ namespace FileTransfer.Configs
             _subscribeSettings = subscribes;
             _listenPort = port;
             _scanPerid = scanPeriod;
-            _incompleteSendSavePath = savePath;
+            _exceptionSavePath = savePath;
             var config = new ConfigClass(monitors, subscribes, port, scanPeriod, savePath);
             ExportXml(_settingPath, config);
         }
@@ -179,22 +179,22 @@ namespace FileTransfer.Configs
             _subscribeSettings = SimpleIoc.Default.GetInstance<MainViewModel>().SubscribeCollection.ToList();
             _listenPort = SimpleIoc.Default.GetInstance<MainViewModel>().ListenPort;
             _scanPerid = SimpleIoc.Default.GetInstance<MainViewModel>().ScanPeriod;
-            _incompleteSendSavePath = SimpleIoc.Default.GetInstance<MainViewModel>().SendExceptionSavePath;
-            var config = new ConfigClass(_monitorSettings, _subscribeSettings, _listenPort, _scanPerid, _incompleteSendSavePath);
+            _exceptionSavePath = SimpleIoc.Default.GetInstance<MainViewModel>().ExceptionSavePath;
+            var config = new ConfigClass(_monitorSettings, _subscribeSettings, _listenPort, _scanPerid, _exceptionSavePath);
             ExportXml(_settingPath, config);
         }
 
         public void SaveScanPeridSetting(int scanPerid)
         {
             _scanPerid = scanPerid;
-            var config = new ConfigClass(_monitorSettings, _subscribeSettings, _listenPort, _scanPerid, _incompleteSendSavePath);
+            var config = new ConfigClass(_monitorSettings, _subscribeSettings, _listenPort, _scanPerid, _exceptionSavePath);
             ExportXml(_settingPath, config);
         }
 
         public void SaveListenPortSetting(int listenPort)
         {
             _listenPort = listenPort;
-            var config = new ConfigClass(_monitorSettings, _subscribeSettings, _listenPort, _scanPerid, _incompleteSendSavePath);
+            var config = new ConfigClass(_monitorSettings, _subscribeSettings, _listenPort, _scanPerid, _exceptionSavePath);
             ExportXml(_settingPath, config);
         }
 
@@ -210,9 +210,9 @@ namespace FileTransfer.Configs
                 _subscribeSettings = new List<SubscribeModel>();
                 _listenPort = 8888;
                 _scanPerid = 1;
-                _incompleteSendSavePath = @"C:\IncompleteSendFiles";
-                if (!Directory.Exists(_incompleteSendSavePath))
-                    Directory.CreateDirectory(_incompleteSendSavePath);
+                _exceptionSavePath = @"C:\ExceptionSave";
+                if (!Directory.Exists(_exceptionSavePath))
+                    Directory.CreateDirectory(_exceptionSavePath);
             }
             else
             {
@@ -220,12 +220,12 @@ namespace FileTransfer.Configs
                 _subscribeSettings = config.SubscribeSettings;
                 _listenPort = config.ListenPort;
                 _scanPerid = config.ScanPeriod;
-                if (Directory.Exists(config.IncompleteSendSavePath))
-                    _incompleteSendSavePath = config.IncompleteSendSavePath;
+                if (Directory.Exists(config.ExceptionSavePath))
+                    _exceptionSavePath = config.ExceptionSavePath;
                 else
-                    _incompleteSendSavePath = @"C:\IncompleteSendFiles";
-                if (!Directory.Exists(_incompleteSendSavePath))
-                    Directory.CreateDirectory(_incompleteSendSavePath);
+                    _exceptionSavePath = @"C:\ExceptionSave";
+                if (!Directory.Exists(_exceptionSavePath))
+                    Directory.CreateDirectory(_exceptionSavePath);
             }
         }
 

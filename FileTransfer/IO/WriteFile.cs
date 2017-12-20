@@ -25,13 +25,14 @@ namespace FileTransfer.IO
         private long _currentFileSize = 0;
         private long _currentStreamIndex = 0;
         private string _currentFileName = string.Empty;
-        private bool _isException = false;
         #endregion
 
         #region 属性
-        public bool IsException
+        public bool IsException { get; set; }
+
+        public string Directory
         {
-            get { return _isException; }
+            get { return _directory; }
         }
         #endregion
 
@@ -67,6 +68,8 @@ namespace FileTransfer.IO
                             _writeStream = new FileStream(_currentFileName, FileMode.Create, FileAccess.Write);
                             break;
                         case WriteDataType.FileContent:
+                            if (_writeStream == null)
+                                break;
                             _writeStream.Seek(_currentStreamIndex, SeekOrigin.Begin);
                             _writeStream.Write(item.DataBuffer, 0, item.DataBuffer.Length);
                             _currentStreamIndex += item.DataBuffer.Length;
@@ -84,8 +87,7 @@ namespace FileTransfer.IO
             }
             catch (Exception e)
             {
-                _isException = true;
-                string logMsg = string.Format("向{0}内写入文件{1}时发生异常{2}！停止写入！", _directory, _currentFileName, e.Message);
+                string logMsg = string.Format("向{0}内写入文件{1}时发生异常{2}！", _directory, _currentFileName, e.Message);
                 _logger.Error(logMsg);
                 LogHelper.Instance.ErrorLogger.Add(new DbHelper.Entitys.ErrorLogEntity(DateTime.Now, "ERROR", logMsg));
             }

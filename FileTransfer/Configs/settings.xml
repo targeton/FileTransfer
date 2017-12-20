@@ -8,5 +8,5 @@
   </SubscribeSettings>
   <ListenPort>8080</ListenPort>
   <ScanPeriod>1</ScanPeriod>
-  <IncompleteSendSavePath>C:\IncompleteSendFiles</IncompleteSendSavePath>
+  <IncompleteSendSavePath>C:\ExceptionSave</IncompleteSendSavePath>
 </Settings>
