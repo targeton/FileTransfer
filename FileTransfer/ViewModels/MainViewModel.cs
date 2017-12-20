@@ -1,6 +1,7 @@
 ﻿using FileTransfer.Configs;
 using FileTransfer.DbHelper.Entitys;
 using FileTransfer.FileWatcher;
+using FileTransfer.IO;
 using FileTransfer.LogToDb;
 using FileTransfer.Models;
 using FileTransfer.Sockets;
@@ -401,13 +402,12 @@ namespace FileTransfer.ViewModels
             });
         }
 
-        public void ShowAcceptProgress(string monitorIp, string monitorDirectory, string sendFile, double progress)
+        public void ShowAcceptProgress(string monitorIp, string monitorDirectory, string acceptDirectory, string receiveFile, double progress)
         {
-            SubscribeCollection.Where(s => s.MonitorIP == monitorIp && s.MonitorDirectory == monitorDirectory).ToList().ForEach(s =>
-            {
-                s.AcceptFileName = sendFile.Replace(monitorDirectory, s.AcceptDirectory);
-                s.AcceptFilePercent = progress;
-            });
+            var subscribeModel = SubscribeCollection.FirstOrDefault(s => s.MonitorIP == monitorIp && s.MonitorDirectory == monitorDirectory && s.AcceptDirectory == acceptDirectory);
+            if (subscribeModel == null) return;
+            subscribeModel.AcceptFileName = receiveFile;
+            subscribeModel.AcceptFilePercent = progress;
         }
 
         public void ShowSendProgress(string monitor, string remote, string sendFile, double progerss)

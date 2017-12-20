@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using FileTransfer.Models;
 using FileTransfer.LogToDb;
 using FileTransfer.DbHelper.Entitys;
+using FileTransfer.IO;
 
 namespace FileTransfer.Sockets
 {
@@ -503,9 +504,10 @@ namespace FileTransfer.Sockets
                     long fileSize = UtilHelper.Instance.GetFileSize(file);
                     BitConverter.GetBytes(fileSize).CopyTo(sendBytes, 0);
                     socket.Send(sendBytes, 0, 8, SocketFlags.None);
-                    //发送文件名（先发送文件名长度，再发送文件名）
+                    //发送相对文件名（先发送文件名长度，再发送文件名）
+                    string relativeFile = IOHelper.Instance.GetRelativePath(monitorDirectory, file);
                     sendBytes = new byte[4];
-                    byte[] fileNameBytes = Encoding.Unicode.GetBytes(file);
+                    byte[] fileNameBytes = Encoding.Unicode.GetBytes(relativeFile);
                     BitConverter.GetBytes(fileNameBytes.Length).CopyTo(sendBytes, 0);
                     socket.Send(sendBytes, 0, 4, SocketFlags.None);
                     socket.Send(fileNameBytes, 0, fileNameBytes.Length, SocketFlags.None);

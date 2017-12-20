@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Timers;
 using FileTransfer.LogToDb;
 using FileTransfer.DbHelper.Entitys;
+using FileTransfer.IO;
 
 namespace FileTransfer.FileWatcher
 {

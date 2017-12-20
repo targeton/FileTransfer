@@ -172,9 +172,13 @@
     <Compile Include="DbHelper\Entitys\ReceiveLogEntity.cs" />
     <Compile Include="DbHelper\Entitys\SendLogEntity.cs" />
     <Compile Include="FileWatcher\FilesRecord.cs" />
-    <Compile Include="FileWatcher\IOHelper.cs" />
     <Compile Include="FileWatcher\MonitorChanges.cs" />
     <Compile Include="FileWatcher\SendFileProcess.cs" />
+    <Compile Include="IO\IOHelper.cs" />
+    <Compile Include="IO\WriteDataBuffer.cs" />
+    <Compile Include="IO\WriteDataType.cs" />
+    <Compile Include="IO\WriteFile.cs" />
+    <Compile Include="IO\WriteFileManager.cs" />
     <Compile Include="Log4NetLayout\CustomLogLayout.cs" />
     <Compile Include="Log4NetLayout\CustomLogPatternConveter.cs" />
     <Compile Include="LogToDb\ErrorLogger.cs" />
@@ -199,6 +203,7 @@
     <Compile Include="Sockets\ReceiveRequestMonitor.cs" />
     <Compile Include="Sockets\ReceiveSubscribeInfo.cs" />
     <Compile Include="Sockets\ReceiveUnregeistSubscirbe.cs" />
+    <Compile Include="Sockets\SendProcess.cs" />
     <Compile Include="Sockets\SocketUtil.cs" />
     <Compile Include="Sockets\SynchronousSocket.cs" />
     <Compile Include="Sockets\SynchronousSocketManager.cs" />

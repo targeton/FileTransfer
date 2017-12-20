@@ -9,6 +9,7 @@ using FileTransfer.ViewModels;
 using GalaSoft.MvvmLight.Ioc;
 using log4net;
 using FileTransfer.Utils;
+using FileTransfer.IO;
 
 namespace FileTransfer.FileWatcher
 {

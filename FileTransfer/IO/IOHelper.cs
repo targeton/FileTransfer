@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FileTransfer.FileWatcher
+namespace FileTransfer.IO
 {
     public class IOHelper
     {
@@ -235,6 +235,14 @@ namespace FileTransfer.FileWatcher
                 _logger.Error(msg);
                 LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
             }
+        }
+
+        //该函数使用时fileName必须在directory路径下
+        //例：directory = "D:\" fileName="D:\Floder\123.txt" , 返回结果为 Floder\123.txt
+        //例：directory = "D:\Floder" fileName="D:\Floder\123.txt" , 返回结果为 123.txt
+        public string GetRelativePath(string directory, string fileName)
+        {
+            return fileName.Replace(directory, "").TrimStart('\\');
         }
 
         #endregion

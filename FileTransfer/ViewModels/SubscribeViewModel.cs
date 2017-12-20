@@ -193,7 +193,7 @@ namespace FileTransfer.ViewModels
             string monitorDirectory = RemoteMonitorFloders.Where(m => m.IsSelected == true).ElementAt(0).RemoteMonitorFloder;
             string acceptDirectiory = AcceptFilePath;
             SubscribeModel subscribe = new SubscribeModel() { MonitorIP = RemoteIP, MonitorListenPort = RemotePort, MonitorDirectory = monitorDirectory, AcceptDirectory = acceptDirectiory };
-            if (SimpleIoc.Default.GetInstance<MainViewModel>().SubscribeCollection.FirstOrDefault(s => s.MonitorIP == remoteAddress && s.MonitorDirectory == monitorDirectory && s.AcceptDirectory == acceptDirectiory) != null)
+            if (SimpleIoc.Default.GetInstance<MainViewModel>().SubscribeCollection.FirstOrDefault(s => s.MonitorIP == RemoteIP && s.MonitorDirectory == monitorDirectory && s.AcceptDirectory == acceptDirectiory) != null)
             {
                 MessageBox.Show("接收配置中已有相同项！", "提醒", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;

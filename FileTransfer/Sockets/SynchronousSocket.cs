@@ -138,7 +138,7 @@ namespace FileTransfer.Sockets
             _listenSocket = null;
             string msg = string.Format("关闭本地侦听Socket并释放所有关联资源");
             _logger.Info(msg);
-            LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
+            //LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "INFO", msg));
         }
 
         #endregion
