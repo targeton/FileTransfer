@@ -1,5 +1,6 @@
 ﻿using FileTransfer.DbHelper;
 using FileTransfer.DbHelper.Entitys;
+using FileTransfer.LogToDb;
 using FileTransfer.Models;
 using FileTransfer.Utils;
 using GalaSoft.MvvmLight;
@@ -77,12 +78,65 @@ namespace FileTransfer.ViewModels
         #region 构造函数
         public LogsQueryViewModel()
         {
+            InitialEvents();
             InitialParams();
             InitialCommands();
         }
         #endregion
 
         #region 方法
+        private void InitialEvents()
+        {
+            LogHelper.Instance.SendLogger.NotifyInsertRows = UpdateSendLogs;
+            LogHelper.Instance.ReceiveLogger.NotifyInsertRows = UpdateReceiveLogs;
+            LogHelper.Instance.MonitorLogger.NotifyInsertRows = UpdateMonitorLogs;
+            LogHelper.Instance.ErrorLogger.NotifyInsertRows = UpdateErrorLogs;
+        }
+
+        private void UpdateSendLogs(IEnumerable<SendLogEntity> logs)
+        {
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            {
+                foreach (var log in logs)
+                {
+                    SendLogs.Insert(0, new SendLogModel(log));
+                }
+            });
+        }
+
+        private void UpdateReceiveLogs(IEnumerable<ReceiveLogEntity> logs)
+        {
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            {
+                foreach (var log in logs)
+                {
+                    ReceiveLogs.Insert(0, new ReceiveLogModel(log));
+                }
+            });
+        }
+
+        private void UpdateMonitorLogs(IEnumerable<MonitorLogEntity> logs)
+        {
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            {
+                foreach (var log in logs)
+                {
+                    MonitorLogs.Insert(0, new MonitorLogModel(log));
+                }
+            });
+        }
+
+        private void UpdateErrorLogs(IEnumerable<ErrorLogEntity> logs)
+        {
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            {
+                foreach (var log in logs)
+                {
+                    ErrorLogs.Insert(0, new ErrorLogModel(log));
+                }
+            });
+        }
+
         private void InitialParams()
         { }
 

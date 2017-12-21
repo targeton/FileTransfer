@@ -18,6 +18,10 @@ namespace FileTransfer.LogToDb
         private string _connectStr = string.Empty;
         #endregion
 
+        #region 事件
+        public Action<IEnumerable<T>> NotifyInsertRows;
+        #endregion
+
         #region 构造函数
         public LogToSQLiteDb()
         {
@@ -32,6 +36,8 @@ namespace FileTransfer.LogToDb
         protected override void Consume(IEnumerable<T> items)
         {
             InsertRowsToDb(items);
+            if (NotifyInsertRows != null)
+                NotifyInsertRows(items);
         }
 
         private void InsertRowsToDb(IEnumerable<T> rows)
