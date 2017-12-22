@@ -1,14 +1,12 @@
 ﻿<Window x:Class="FileTransfer.Views.LogsQueryView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="clr-namespace:FileTransfer.ViewModels"
         xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
         xmlns:d="http://schemas.devexpress.com/winfx/2008/xaml/core"
         xmlns:dxg="http://schemas.devexpress.com/winfx/2008/xaml/grid"
         xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors"
         Title="日志查询" Height="800" Width="1200" Closed="Window_Closed" WindowStartupLocation="CenterOwner">
     <Window.Resources>
-        <vm:ViewModelLocator x:Key="Locator"></vm:ViewModelLocator>
         <Style TargetType="dxe:DateEdit">
             <Setter Property="MaskType" Value="DateTime"></Setter>
             <Setter Property="Mask" Value="G"></Setter>

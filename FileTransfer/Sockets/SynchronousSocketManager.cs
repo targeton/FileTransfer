@@ -27,7 +27,7 @@ namespace FileTransfer.Sockets
 
         #region 变量
         private SynchronousSocket _server;
-        private SynchronousSocket _client;
+        //private SynchronousSocket _client;
         private IPAddress _localIP;
         private int _localListenPort = -1;
         private static ILog _logger = LogManager.GetLogger(typeof(SynchronousSocketManager));

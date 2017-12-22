@@ -251,54 +251,27 @@ namespace FileTransfer.ViewModels
 
         private void ExecuteAddMonitorCommand()
         {
-            string selectedPath = SelectFloder();
-            if (string.IsNullOrEmpty(selectedPath))
-            {
-                MessageBox.Show("未选中任何文件夹！", "提醒", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-            if (IOHelper.Instance.IsConflict(selectedPath, ExceptionSavePath))
-            {
-                MessageBox.Show("所选文件夹与发送异常转存路径冲突！", "提醒", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            else
-            {
-                if (MonitorCollection.FirstOrDefault(m => m.MonitorDirectory == selectedPath) == null)
-                {
-                    MonitorCollection.Add(new MonitorModel() { MonitorDirectory = selectedPath, DeleteFiles = true });
-                    ConfigHelper.Instance.SaveSettings();
-                }
-                else
-                    MessageBox.Show("所选文件夹已在监控目录中！", "提醒", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-        }
-
-        private string SelectFloder()
-        {
-            string selectedPath = string.Empty;
-            //获取当前Windows系统的主版本号（WindowsXp及以下版本用FloderBrowserDialog选择文件夹，WindowVista及以上版本用CommonOpenFileDialog选择文件夹）
-            int major = System.Environment.OSVersion.Version.Major;
-            if (major < 6)
-            {
-                var dlg = new FolderBrowserDialog();
-                dlg.Description = @"请选择监控文件夹目录";
-                if (dlg.ShowDialog() == DialogResult.OK)
-                {
-                    selectedPath = dlg.SelectedPath;
-                }
-            }
-            else
-            {
-                var dlg = new CommonOpenFileDialog();
-                dlg.Multiselect = false;
-                dlg.IsFolderPicker = true;
-                dlg.Title = @"请选择监控文件夹目录";
-                if (dlg.ShowDialog() == CommonFileDialogResult.Ok)
-                {
-                    selectedPath = dlg.FileName;
-                }
-            }
-            return selectedPath;
+            Messenger.Default.Send<string>("ShowAddMonitorView");
+            //string selectedPath = IOHelper.Instance.SelectFloder(@"请选择监控文件夹目录");
+            //if (string.IsNullOrEmpty(selectedPath))
+            //{
+            //    MessageBox.Show("未选中任何文件夹！", "提醒", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            //    return;
+            //}
+            //if (IOHelper.Instance.IsConflict(selectedPath, ExceptionSavePath))
+            //{
+            //    MessageBox.Show("所选文件夹与发送异常转存路径冲突！", "提醒", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            //}
+            //else
+            //{
+            //    if (MonitorCollection.FirstOrDefault(m => m.MonitorDirectory == selectedPath) == null)
+            //    {
+            //        MonitorCollection.Add(new MonitorModel() { MonitorDirectory = selectedPath, DeleteFiles = true });
+            //        ConfigHelper.Instance.SaveSettings();
+            //    }
+            //    else
+            //        MessageBox.Show("所选文件夹已在监控目录中！", "提醒", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            //}
         }
 
         private void ExecuteDeleteMonitorSettingCommand(object deleteItem)

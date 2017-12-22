@@ -219,10 +219,14 @@
     <Compile Include="Utils\UtilHelper.cs" />
     <Compile Include="ValidationRules\IPAdressCheckRule.cs" />
     <Compile Include="ValidationRules\PosIntCheckRule.cs" />
+    <Compile Include="ViewModels\AddMonitorViewModel.cs" />
     <Compile Include="ViewModels\LogsQueryViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="ViewModels\SubscribeViewModel.cs" />
     <Compile Include="ViewModels\ViewModelLocator.cs" />
+    <Compile Include="Views\AddMonitorView.xaml.cs">
+      <DependentUpon>AddMonitorView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\LogsQueryView.xaml.cs">
       <DependentUpon>LogsQueryView.xaml</DependentUpon>
     </Compile>
@@ -242,6 +246,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Views\AddMonitorView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\LogsQueryView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

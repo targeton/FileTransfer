@@ -30,6 +30,7 @@ namespace FileTransfer
         #region 变量
         private SubscribeView _subscribeView;
         private LogsQueryView _logsQueryView;
+        private AddMonitorView _addMonitorView;
         #endregion
 
         public MainWindow()
@@ -70,6 +71,15 @@ namespace FileTransfer
                 case "CloseLogsQueryView":
                     if (_logsQueryView != null)
                         _logsQueryView.Close();
+                    break;
+                case "ShowAddMonitorView":
+                    if (_addMonitorView == null || (new WindowInteropHelper(_addMonitorView)).Handle == IntPtr.Zero)
+                        _addMonitorView = new AddMonitorView(this);
+                    _addMonitorView.ShowDialog();
+                    break;
+                case "CloseAddMonitorView":
+                    if (_addMonitorView != null)
+                        _addMonitorView.Close();
                     break;
                 default:
                     break;

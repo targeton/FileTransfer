@@ -1,12 +1,14 @@
 ﻿using FileTransfer.DbHelper.Entitys;
 using FileTransfer.LogToDb;
 using log4net;
+using Microsoft.WindowsAPICodePack.Dialogs;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace FileTransfer.IO
 {
@@ -244,6 +246,35 @@ namespace FileTransfer.IO
         {
             return fileName.Replace(directory, "").TrimStart('\\');
         }
+
+        public string SelectFloder(string title)
+        {
+            string selectedPath = string.Empty;
+            //获取当前Windows系统的主版本号（WindowsXp及以下版本用FloderBrowserDialog选择文件夹，WindowVista及以上版本用CommonOpenFileDialog选择文件夹）
+            int major = System.Environment.OSVersion.Version.Major;
+            if (major < 6)
+            {
+                var dlg = new FolderBrowserDialog();
+                dlg.Description = title;
+                if (dlg.ShowDialog() == DialogResult.OK)
+                {
+                    selectedPath = dlg.SelectedPath;
+                }
+            }
+            else
+            {
+                var dlg = new CommonOpenFileDialog();
+                dlg.Multiselect = false;
+                dlg.IsFolderPicker = true;
+                dlg.Title = title;
+                if (dlg.ShowDialog() == CommonFileDialogResult.Ok)
+                {
+                    selectedPath = dlg.FileName;
+                }
+            }
+            return selectedPath;
+        }
+
 
         #endregion
     }

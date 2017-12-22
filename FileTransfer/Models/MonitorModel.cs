@@ -12,6 +12,18 @@ namespace FileTransfer.Models
     public class MonitorModel : ObservableObject
     {
         #region 属性
+        private string _monitorAlias;
+        [XmlAttribute("MonitorAlias")]
+        public string MonitorAlias
+        {
+            get { return _monitorAlias; }
+            set
+            {
+                _monitorAlias = value;
+                RaisePropertyChanged("MonitorAlias");
+            }
+        }
+
         private string _monitorDirectory;
         [XmlAttribute("MonitorDirectory")]
         public string MonitorDirectory
@@ -64,7 +76,7 @@ namespace FileTransfer.Models
         [XmlArray("SubscribeInfos"), XmlArrayItem("SubscribeInfo")]
         public ObservableCollection<SubscribeInfoModel> SubscribeInfos
         {
-            get { return _subscribeInfos ; }
+            get { return _subscribeInfos; }
             set
             {
                 _subscribeInfos = value;

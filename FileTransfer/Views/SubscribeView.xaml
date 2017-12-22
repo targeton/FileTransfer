@@ -1,11 +1,9 @@
 ﻿<Window x:Class="FileTransfer.Views.SubscribeView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="clr-namespace:FileTransfer.ViewModels"
         xmlns:rule="clr-namespace:FileTransfer.ValidationRules"
         Title="接收文件夹设置" Height="300" Width="550" Closed="Window_Closed" WindowStartupLocation="CenterOwner">
     <Window.Resources>
-        <vm:ViewModelLocator x:Key="Locator"></vm:ViewModelLocator>
         <ControlTemplate x:Key="ValidationTemplate">
             <DockPanel>
                 <TextBlock Foreground="Red" FontSize="20">!</TextBlock>
