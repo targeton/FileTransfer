@@ -151,7 +151,21 @@
                             </DataGrid.RowStyle>
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="监控别名" IsReadOnly="True" Binding="{Binding Path=MonitorAlias}" Width="100"></DataGridTextColumn>
-                                <DataGridTextColumn Header="监控文件夹" IsReadOnly="True" Binding="{Binding Path=MonitorDirectory}" Width="250"></DataGridTextColumn>
+                                <DataGridTemplateColumn Header="监控文件夹" IsReadOnly="True" Width="250">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="1*"></ColumnDefinition>
+                                                    <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Text="{Binding Path=MonitorDirectory}"></TextBlock>
+                                                <Button Width="20" Height="15" Grid.Column="1" ></Button>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <!--<DataGridTextColumn Header="监控文件夹" IsReadOnly="True" Binding="{Binding Path=MonitorDirectory}" Width="250"></DataGridTextColumn>-->
                                 <!--<DataGridTextColumn Header="订阅者IP" IsReadOnly="True" Binding="{Binding Path=SubscribeIP}" Width="200"></DataGridTextColumn>-->
                                 <DataGridCheckBoxColumn Header="是否删除文件" Binding="{Binding Path=DeleteFiles}"
                                                         IsReadOnly="{Binding Source={StaticResource Locator}, Path=MainViewModel.MonitorFlag, Converter={StaticResource BoolInverseConverter}}"></DataGridCheckBoxColumn>
@@ -216,7 +230,21 @@
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="监控者IP" IsReadOnly="True" Binding="{Binding Path=MonitorIP}" Width="200"></DataGridTextColumn>
                                 <DataGridTextColumn Header="监控文件夹" IsReadOnly="True" Binding="{Binding Path=MonitorDirectory}" Width="250"></DataGridTextColumn>
-                                <DataGridTextColumn Header="接收文件夹" IsReadOnly="True" Binding="{Binding Path=AcceptDirectory}" Width="250"></DataGridTextColumn>
+                                <DataGridTemplateColumn IsReadOnly="True" Width="250">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="1*"></ColumnDefinition>
+                                                    <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Text="{Binding Path=AcceptDirectory}"></TextBlock>
+                                                <Button Width="20" Height="15" Grid.Column="1" ></Button>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <!--<DataGridTextColumn Header="接收文件夹" IsReadOnly="True" Binding="{Binding Path=AcceptDirectory}" Width="250"></DataGridTextColumn>-->
                                 <DataGridTemplateColumn Header="接收进度" Width="150" IsReadOnly="True">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
