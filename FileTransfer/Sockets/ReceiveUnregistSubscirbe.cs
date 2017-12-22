@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace FileTransfer.Sockets
 {
-    public class ReceiveUnregeistSubscirbe : ReceiveProcess
+    public class ReceiveUnregistSubscirbe : ReceiveProcess
     {
         #region 变量
 

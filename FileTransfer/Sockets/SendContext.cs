@@ -1,61 +1,61 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Sockets;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace FileTransfer.Sockets
 {
-    public class ReceiveContext
+    public class SendContext
     {
         #region 变量
-        ReceiveProcess _process = null;
+        private SendProcess _process = null;
         #endregion
 
         #region 构造函数
-        public ReceiveContext(string headMsg)
+        public SendContext(string headMsg)
         {
             switch (headMsg)
             {
                 //Request Monitor Floders
                 case "$RMF#":
-                    _process = new ReceiveRequestMonitor();
+                    _process = new SendRequestMonitor(headMsg);
                     break;
                 //
                 case "$RFS#":
-                    _process = new ReceiveSubscribeInfo();
+                    _process = new SendSubscribeInfo(headMsg);
                     break;
                 case "$BTF#":
-                    _process = new ReceiveFiles();
+                    _process = new SendFiles(headMsg);
                     break;
                 //Delete Monitor Floder
                 case "$DMF#":
-                    _process = new ReceiveDeleteMonitor();
+                    _process = new SendDeleteMonitor(headMsg);
                     break;
                 case "$DSF#":
-                    _process = new ReceiveUnregistSubscirbe();
+                    _process = new SendUnregisterSubscribe(headMsg);
                     break;
                 //Check Connect Remote
                 case "$CCR#":
-                    _process = new ReceiveCheckConnect();
+                    _process = new SendCheckConnect(headMsg);
                     break;
                 //ON/OffLine
                 case "$OFL#":
-                    _process = new ReceiveOnlineOffline();
+                    _process = new SendOnlineOffline(headMsg);
                     break;
                 default:
-                    _process = new ReceiveProcess();
+                    _process = new SendProcess(headMsg);
                     break;
             }
         }
         #endregion
 
         #region 方法
-        public void Process(Socket socket)
+        public object ConnectToRemot(IPEndPoint remote, object[] param)
         {
-            if (_process == null) return;
-            _process.SocketPorcess(socket);
+            if (_process == null) return null;
+            return _process.SendToServer(remote, param);
         }
         #endregion
 

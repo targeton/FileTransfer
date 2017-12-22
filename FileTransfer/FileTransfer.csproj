@@ -202,8 +202,16 @@
     <Compile Include="Sockets\ReceiveProcess.cs" />
     <Compile Include="Sockets\ReceiveRequestMonitor.cs" />
     <Compile Include="Sockets\ReceiveSubscribeInfo.cs" />
-    <Compile Include="Sockets\ReceiveUnregeistSubscirbe.cs" />
+    <Compile Include="Sockets\ReceiveUnregistSubscirbe.cs" />
+    <Compile Include="Sockets\SendCheckConnect.cs" />
+    <Compile Include="Sockets\SendContext.cs" />
+    <Compile Include="Sockets\SendDeleteMonitor.cs" />
+    <Compile Include="Sockets\SendFiles.cs" />
+    <Compile Include="Sockets\SendOnlineOffline.cs" />
     <Compile Include="Sockets\SendProcess.cs" />
+    <Compile Include="Sockets\SendRequestMonitor.cs" />
+    <Compile Include="Sockets\SendSubscribeInfo.cs" />
+    <Compile Include="Sockets\SendUnregisterSubscribe.cs" />
     <Compile Include="Sockets\SocketUtil.cs" />
     <Compile Include="Sockets\SynchronousSocket.cs" />
     <Compile Include="Sockets\SynchronousSocketManager.cs" />
