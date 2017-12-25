@@ -173,6 +173,7 @@ namespace FileTransfer.ViewModels
                 {
                     if (sendLogResult != null)
                     {
+                        SendLogs = new ObservableCollection<SendLogModel>();
                         foreach (var log in sendLogResult)
                         {
                             SendLogs.Add(new SendLogModel(log));
@@ -180,6 +181,7 @@ namespace FileTransfer.ViewModels
                     }
                     if (receiveLogResult != null)
                     {
+                        ReceiveLogs = new ObservableCollection<ReceiveLogModel>();
                         foreach (var log in receiveLogResult)
                         {
                             ReceiveLogs.Add(new ReceiveLogModel(log));
@@ -187,6 +189,7 @@ namespace FileTransfer.ViewModels
                     }
                     if (monitorLogResult != null)
                     {
+                        MonitorLogs = new ObservableCollection<MonitorLogModel>();
                         foreach (var log in monitorLogResult)
                         {
                             MonitorLogs.Add(new MonitorLogModel(log));
@@ -194,6 +197,7 @@ namespace FileTransfer.ViewModels
                     }
                     if (logResult != null)
                     {
+                        ErrorLogs = new ObservableCollection<ErrorLogModel>();
                         foreach (var log in logResult)
                         {
                             ErrorLogs.Add(new ErrorLogModel(log));

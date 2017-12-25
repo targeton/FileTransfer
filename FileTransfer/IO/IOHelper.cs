@@ -82,7 +82,7 @@ namespace FileTransfer.IO
             }
         }
 
-        private void   DeleteFile(string file)
+        private void DeleteFile(string file)
         {
             try
             {

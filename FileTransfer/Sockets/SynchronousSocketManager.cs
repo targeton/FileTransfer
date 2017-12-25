@@ -161,7 +161,10 @@ namespace FileTransfer.Sockets
             SendContext context = new SendContext(@"$CCR#");
             object[] param = null;
             object feedback = context.ConnectToRemot(remote, param);
-            return (bool)feedback;
+            if (feedback == null || feedback.GetType() != typeof(bool))
+                return false;
+            else
+                return (bool)feedback;
         }
 
         /// <summary>

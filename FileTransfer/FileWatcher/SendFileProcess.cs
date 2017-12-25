@@ -107,7 +107,7 @@ namespace FileTransfer.FileWatcher
                     records.Add(tasksArray[i].Result);
                 }
                 if (records.Count == 0) return;
-                string directory = records.First().MonitorAlias;
+                string alias = records.First().MonitorAlias;
                 List<string> incrementFiles = records.First().IncrementFiles;
                 List<string> incompleteSendFiles = new List<string>();
                 records.ForEach(r => incompleteSendFiles.AddRange(r.IncompleteSendFiles));
@@ -115,16 +115,16 @@ namespace FileTransfer.FileWatcher
                 if (incompleteSendFiles != null && incompleteSendFiles.Count > 0)
                 {
                     var savePath = SimpleIoc.Default.GetInstance<MainViewModel>().ExceptionSavePath;
-                    IOHelper.Instance.SaveUnsendedFiles(incompleteSendFiles, _monitorAlias, savePath);
+                    IOHelper.Instance.SaveUnsendedFiles(incompleteSendFiles, _monitorDirectory, savePath);
                 }
                 if (incrementFiles != null && incrementFiles.Count > 0)
                 {
                     foreach (var file in incrementFiles)
                     {
-                        IOHelper.Instance.TryDeleteFile(directory, file);
+                        IOHelper.Instance.TryDeleteFile(alias, file);
                     }
                 }
-                IOHelper.Instance.TryDeleteSubdirectories(directory);
+                IOHelper.Instance.TryDeleteSubdirectories(alias);
             });
         }
         #endregion

@@ -60,25 +60,25 @@ namespace FileTransfer.FileWatcher
         private void InitialMonitorChanges(bool ignore = true)
         {
             var monitors = SimpleIoc.Default.GetInstance<MainViewModel>().MonitorCollection.ToList();
-            List<string> monitorAlias = monitors.Select(m => m.MonitorAlias).Distinct().ToList();
+            //var monitorAlias = monitors.Select(m => m.MonitorAlias).Distinct().ToList();
             _monitorAliasChanges = new Dictionary<string, List<string>>();
-            foreach (var alias in monitorAlias)
+            foreach (var monitor in monitors)
             {
                 //IOHelper中配置各监控文件夹删除文件和删除子文件夹的配置
-                bool deleteFile = monitors.Where(m => m.MonitorAlias == alias).Any(m => m.DeleteFiles == true);
-                bool deleteSubdirectory = monitors.Where(m => m.MonitorAlias == alias).Any(m => m.DeleteSubdirectory == true);
-                IOHelper.Instance.SetDeleteSetting(alias, deleteFile, deleteSubdirectory);
+                bool deleteFile = monitor.DeleteFiles;
+                bool deleteSubdirectory = monitor.DeleteSubdirectory;
+                IOHelper.Instance.SetDeleteSetting(monitor.MonitorAlias, deleteFile, deleteSubdirectory);
                 //获取监控文件夹内的初始文件状态(根据ignore决定是否监控原有文件，默认不监控)
                 if (ignore)
                 {
-                    List<string> files = IOHelper.Instance.GetAllFiles(alias);
+                    List<string> files = IOHelper.Instance.GetAllFiles(monitor.MonitorDirectory);
                     if (files == null || files.Count <= 0)
                         files = new List<string>();
-                    _monitorAliasChanges.Add(alias, files);
+                    _monitorAliasChanges.Add(monitor.MonitorAlias, files);
                 }
                 else
                 {
-                    _monitorAliasChanges.Add(alias, new List<string>());
+                    _monitorAliasChanges.Add(monitor.MonitorAlias, new List<string>());
                 }
             }
         }
