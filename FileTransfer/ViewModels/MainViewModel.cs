@@ -181,16 +181,22 @@ namespace FileTransfer.ViewModels
         {
             var subscribe = SubscribeCollection.First(s => s.AcceptDirectory == oldAcceptDirectory);
             var selectedPath = IOHelper.Instance.SelectFloder(@"请选择新的接收路径");
-            if (!string.IsNullOrEmpty(selectedPath))
+            if (!string.IsNullOrEmpty(selectedPath) && selectedPath != oldAcceptDirectory)
+            {
                 subscribe.AcceptDirectory = selectedPath;
+                ConfigHelper.Instance.SaveSettings();
+            }
         }
 
         private void ExecuteChangeMonitorCommand(string oldMonitorDirectory)
         {
             var monitor = MonitorCollection.First(m => m.MonitorDirectory == oldMonitorDirectory);
             var selectedPath = IOHelper.Instance.SelectFloder(@"请选择新的监控路径");
-            if (!string.IsNullOrEmpty(selectedPath))
+            if (!string.IsNullOrEmpty(selectedPath) && selectedPath != oldMonitorDirectory)
+            {
                 monitor.MonitorDirectory = selectedPath;
+                ConfigHelper.Instance.SaveSettings();
+            }
         }
 
         private void ExecuteControlMonitorCommand(bool control)
