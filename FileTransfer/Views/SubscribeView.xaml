@@ -55,7 +55,7 @@
                         </TextBox.Text>
                     </TextBox>
                 </StackPanel>
-                <Button Content="检测监控文件夹" Width="100" Height="25" HorizontalAlignment="Right" Margin="5"
+                <Button Content="检测监控项" Width="100" Height="25" HorizontalAlignment="Right" Margin="5"
                         Command="{Binding Path=SubscribeViewModel.RequestMonitorFlodersCommand, Source={StaticResource Locator}}"></Button>
                 <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="1" CornerRadius="5" Margin="3">
                     <ItemsControl ItemsSource="{Binding Path=SubscribeViewModel.RemoteMonitorFloders, Source={StaticResource Locator}}">

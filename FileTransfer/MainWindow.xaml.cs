@@ -46,8 +46,8 @@ namespace FileTransfer
         private void Window_Closed(object sender, EventArgs e)
         {
             Messenger.Default.Unregister<string>(this, ReceiveMessage);
-            SimpleIoc.Default.Unregister<MainViewModel>();
-            SimpleIoc.Default.Unregister<SubscribeViewModel>();
+            //SimpleIoc.Default.Unregister<MainViewModel>();
+            //SimpleIoc.Default.Unregister<SubscribeViewModel>();
         }
 
         private void ReceiveMessage(string message)

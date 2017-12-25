@@ -17,11 +17,11 @@ namespace FileTransfer.LogToDb
         protected override void BatchInsertRows(System.Data.Common.DbConnection conn, IEnumerable<ReceiveLogEntity> rows)
         {
             DbCommand command = conn.CreateCommand();
-            command.CommandText = @"INSERT INTO ReceiveLog(ReceiveDate,ReceiveFile,MonitorIP,MonitorDirectory,ReceiveState) VALUES(@ReceiveDate,@ReceiveFile,@MonitorIP,@MonitorDirectory,@ReceiveState)";
+            command.CommandText = @"INSERT INTO ReceiveLog(ReceiveDate,ReceiveFile,MonitorIP,MonitorAlias,ReceiveState) VALUES(@ReceiveDate,@ReceiveFile,@MonitorIP,@MonitorAlias,@ReceiveState)";
             DbParameter dateParam = new SQLiteParameter("@ReceiveDate", DbType.DateTime);
             DbParameter fileParam = new SQLiteParameter("@ReceiveFile", DbType.String);
             DbParameter ipParam = new SQLiteParameter("@MonitorIP", DbType.String, 30);
-            DbParameter dictParam = new SQLiteParameter("@MonitorDirectory", DbType.String);
+            DbParameter dictParam = new SQLiteParameter("@MonitorAlias", DbType.String);
             DbParameter stateParam = new SQLiteParameter("@ReceiveState", DbType.String, 10);
             command.Parameters.Add(dateParam);
             command.Parameters.Add(fileParam);
@@ -33,7 +33,7 @@ namespace FileTransfer.LogToDb
                 dateParam.Value = r.ReceiveDate;
                 fileParam.Value = r.ReceiveFile;
                 ipParam.Value = r.MonitorIP;
-                dictParam.Value = r.MonitorDirectory;
+                dictParam.Value = r.MonitorAlias;
                 stateParam.Value = r.ReceiveState;
                 command.ExecuteNonQuery();
             }

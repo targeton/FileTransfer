@@ -31,7 +31,7 @@ namespace FileTransfer.Sockets
             int directoryLength = BitConverter.ToInt32(receiveBytes.Take(byteRec).ToArray(), 0);
             receiveBytes = new byte[directoryLength];
             byteRec = socket.Receive(receiveBytes, 0, directoryLength, SocketFlags.None);
-            string monitorDirectory = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
+            string monitorAlias = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
             receiveBytes = new byte[16];
             byteRec = socket.Receive(receiveBytes, 0, 16, SocketFlags.None);
             string msg = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
@@ -40,7 +40,7 @@ namespace FileTransfer.Sockets
             if (msg == @"$ON#")
                 online = true;
             if (SimpleIoc.Default.IsRegistered<MainViewModel>())
-                SimpleIoc.Default.GetInstance<MainViewModel>().RefreshConnectStatus(monitorDirectory, subscribeIp, online);
+                SimpleIoc.Default.GetInstance<MainViewModel>().RefreshConnectStatus(monitorAlias, subscribeIp, online);
             //发送断开信息
             byte[] disconnectBytes = new byte[16];
             Encoding.Unicode.GetBytes("$DSK#").CopyTo(disconnectBytes, 0);

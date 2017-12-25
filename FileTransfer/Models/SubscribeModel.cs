@@ -35,15 +35,15 @@ namespace FileTransfer.Models
             }
         }
 
-        private string _monitorDirectory;
-        [XmlAttribute("MonitorDirectory")]
-        public string MonitorDirectory
+        private string _monitorAlias;
+        [XmlAttribute("MonitorAlias")]
+        public string MonitorAlias
         {
-            get { return _monitorDirectory; }
+            get { return _monitorAlias; }
             set
             {
-                _monitorDirectory = value;
-                RaisePropertyChanged("MonitorDirectory");
+                _monitorAlias = value;
+                RaisePropertyChanged("MonitorAlias");
             }
         }
 

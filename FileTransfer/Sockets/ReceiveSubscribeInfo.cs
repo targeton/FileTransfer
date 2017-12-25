@@ -38,12 +38,12 @@ namespace FileTransfer.Sockets
             int receiveNum = BitConverter.ToInt32(receiveBytes.Take(byteRec).ToArray(), 0);
             receiveBytes = new byte[receiveNum];
             byteRec = socket.Receive(receiveBytes, 0, receiveNum, SocketFlags.None);
-            string monitorDirectory = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec);
+            string monitorAlias = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec);
             receiveBytes = new byte[16];
             byteRec = socket.Receive(receiveBytes, 0, 16, SocketFlags.None);
             string endStr = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
             if (endStr == @"$EOF#")
-                SimpleIoc.Default.GetInstance<MainViewModel>().CompleteMonitorSetting(monitorDirectory, ipAddressPort);
+                SimpleIoc.Default.GetInstance<MainViewModel>().CompleteMonitorSetting(monitorAlias, ipAddressPort);
             else
             {
                 string msg = string.Format("接收{0}的订阅信息后，未能成功接收结束消息头（$EOF#）！", ipAddressPort);

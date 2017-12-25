@@ -23,8 +23,8 @@ namespace FileTransfer.Sockets
         {
             if (param == null || param.Length != 1)
                 return null;
-            var monitorDirectory = (string)param[0];
-            byte[] directoryBytes = Encoding.Unicode.GetBytes(monitorDirectory);
+            var monitorAlias = (string)param[0];
+            byte[] directoryBytes = Encoding.Unicode.GetBytes(monitorAlias);
             //前4位为文件夹byte数组的长度，后面为文件夹byte数组
             byte[] sendBytes = new byte[4 + directoryBytes.Length];
             //Encoding.Unicode.GetBytes(LocalIPv4).CopyTo(sendBytes, 0);

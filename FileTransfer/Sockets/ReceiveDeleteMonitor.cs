@@ -30,9 +30,9 @@ namespace FileTransfer.Sockets
             int floderLength = BitConverter.ToInt32(receiveBytes.Take(byteRec).ToArray(), 0);
             receiveBytes = new byte[floderLength];
             byteRec = socket.Receive(receiveBytes, 0, floderLength, SocketFlags.None);
-            string monitorDirectory = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
+            string monitorAlias = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
             //删除本地对应监控的接收配置
-            SimpleIoc.Default.GetInstance<MainViewModel>().RemoveAcceptSettings(monitorIp, monitorDirectory);
+            SimpleIoc.Default.GetInstance<MainViewModel>().RemoveAcceptSettings(monitorIp, monitorAlias);
             //发送断开信息
             byte[] disconnectBytes = new byte[16];
             Encoding.Unicode.GetBytes("$DSK#").CopyTo(disconnectBytes, 0);

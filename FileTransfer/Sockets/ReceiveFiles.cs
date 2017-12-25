@@ -32,19 +32,19 @@ namespace FileTransfer.Sockets
             //int byteRec = socket.Receive(receiveBytes, 0, 32, SocketFlags.None);
             //string monitorIp = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
             string monitorIp = ((IPEndPoint)socket.RemoteEndPoint).Address.ToString();
-            //获取监控文件夹信息
+            //获取监控别名信息
             byte[] receiveBytes = new byte[4];
             int byteRec = socket.Receive(receiveBytes, 0, 4, SocketFlags.None);
             int floderLength = BitConverter.ToInt32(receiveBytes.Take(byteRec).ToArray(), 0);
             receiveBytes = new byte[floderLength];
             byteRec = socket.Receive(receiveBytes, 0, floderLength, SocketFlags.None);
-            string monitorDirectory = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
+            string monitorAlias = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
             //获取文件总数
             receiveBytes = new byte[8];
             byteRec = socket.Receive(receiveBytes, 0, 8, SocketFlags.None);
             long fileNum = BitConverter.ToInt64(receiveBytes.Take(byteRec).ToArray(), 0);
             //创建接收管理对象
-            WriteFileManager writeManager = new WriteFileManager(monitorIp, monitorDirectory);
+            WriteFileManager writeManager = new WriteFileManager(monitorIp, monitorAlias);
             long fileNumIndex = 0;
             while (fileNumIndex < fileNum)
             {

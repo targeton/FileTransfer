@@ -22,11 +22,11 @@ namespace FileTransfer.Sockets
         protected override object SendParams(IPEndPoint remote, object[] param)
         {
             if (param == null || param.Length != 3) return null;
-            var monitorDirectory = (string)param[0];
+            var monitorAlias = (string)param[0];
             var localListentPort = (int)param[1];
             var online = (bool)param[2];
             //发送本地端口和监控文件夹
-            byte[] directoryBytes = Encoding.Unicode.GetBytes(monitorDirectory);
+            byte[] directoryBytes = Encoding.Unicode.GetBytes(monitorAlias);
             int byteLength = 8 + directoryBytes.Length;
             byte[] sendBytes = new byte[byteLength];
             BitConverter.GetBytes(localListentPort).CopyTo(sendBytes, 0);

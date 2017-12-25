@@ -34,7 +34,7 @@ namespace FileTransfer.Views
 
         private void Window_Closed(object sender, EventArgs e)
         {
-            SimpleIoc.Default.Unregister<LogsQueryViewModel>();
+            //SimpleIoc.Default.Unregister<LogsQueryViewModel>();
         }
 
     }

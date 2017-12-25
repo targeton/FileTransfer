@@ -47,15 +47,15 @@ namespace FileTransfer.Models
             }
         }
 
-        private string _monitorDirectory;
+        private string _monitorAlias;
 
-        public string MonitorDirectory
+        public string MonitorAlias
         {
-            get { return _monitorDirectory; }
+            get { return _monitorAlias; }
             set
             {
-                _monitorDirectory = value;
-                RaisePropertyChanged("MonitorDirectory");
+                _monitorAlias = value;
+                RaisePropertyChanged("MonitorAlias");
             }
         }
 
@@ -77,20 +77,20 @@ namespace FileTransfer.Models
         public ReceiveLogModel()
         { }
 
-        public ReceiveLogModel(string receiveFile, string monitorIP, string monitorDirectory, string receiveState)
+        public ReceiveLogModel(string receiveFile, string monitorIP, string monitorAlias, string receiveState)
         {
             _receiveFileName = receiveFile;
             _monitorIP = monitorIP;
-            _monitorDirectory = monitorDirectory;
+            _monitorAlias = monitorAlias;
             _receiveFileState = receiveState;
         }
 
-        public ReceiveLogModel(DateTime receiveTime, string receiveFile, string monitorIP, string monitorDirectory, string receiveState)
+        public ReceiveLogModel(DateTime receiveTime, string receiveFile, string monitorIP, string monitorAlias, string receiveState)
         {
             _receiveFileTime = receiveTime;
             _receiveFileName = receiveFile;
             _monitorIP = monitorIP;
-            _monitorDirectory = monitorDirectory;
+            _monitorAlias = monitorAlias;
             _receiveFileState = receiveState;
         }
 
@@ -99,7 +99,7 @@ namespace FileTransfer.Models
             _receiveFileTime = entity.ReceiveDate;
             _receiveFileName = entity.ReceiveFile;
             _monitorIP = entity.MonitorIP;
-            _monitorDirectory = entity.MonitorDirectory;
+            _monitorAlias = entity.MonitorAlias;
             _receiveFileState = entity.ReceiveState;
         }
 

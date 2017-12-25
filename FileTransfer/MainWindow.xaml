@@ -160,7 +160,8 @@
                                                     <ColumnDefinition Width="Auto"></ColumnDefinition>
                                                 </Grid.ColumnDefinitions>
                                                 <TextBlock Text="{Binding Path=MonitorDirectory}"></TextBlock>
-                                                <Button Width="20" Height="15" Grid.Column="1" ></Button>
+                                                <Button Width="20" Height="16" Grid.Column="1" Command="{Binding Source={StaticResource Locator}, Path=MainViewModel.ChangeMonitorCommand}"
+                                                        CommandParameter="{Binding Path=MonitorDirectory}" FontFamily="pack://application:,,,/FileTransfer;component/Resources/#FontAwesome" Content="&#xf021;" FontSize="10"></Button>
                                             </Grid>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
@@ -229,8 +230,8 @@
                             </DataGrid.RowStyle>
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="监控者IP" IsReadOnly="True" Binding="{Binding Path=MonitorIP}" Width="200"></DataGridTextColumn>
-                                <DataGridTextColumn Header="监控文件夹" IsReadOnly="True" Binding="{Binding Path=MonitorDirectory}" Width="250"></DataGridTextColumn>
-                                <DataGridTemplateColumn IsReadOnly="True" Width="250">
+                                <DataGridTextColumn Header="监控别名" IsReadOnly="True" Binding="{Binding Path=MonitorAlias}" Width="250"></DataGridTextColumn>
+                                <DataGridTemplateColumn Header="接收文件夹" IsReadOnly="True" Width="250">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <Grid>
@@ -239,7 +240,8 @@
                                                     <ColumnDefinition Width="Auto"></ColumnDefinition>
                                                 </Grid.ColumnDefinitions>
                                                 <TextBlock Text="{Binding Path=AcceptDirectory}"></TextBlock>
-                                                <Button Width="20" Height="15" Grid.Column="1" ></Button>
+                                                <Button Width="20" Height="16" Grid.Column="1" Command="{Binding Source={StaticResource Locator}, Path=MainViewModel.ChangeSubscribeCommand}"
+                                                        CommandParameter="{Binding Path=AcceptDirectory}" FontFamily="pack://application:,,,/FileTransfer;component/Resources/#FontAwesome" Content="&#xf021;" FontSize="10"></Button>
                                             </Grid>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>

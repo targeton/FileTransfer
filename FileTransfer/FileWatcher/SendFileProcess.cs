@@ -25,16 +25,26 @@ namespace FileTransfer.FileWatcher
         #endregion
 
         #region 属性
+        private string _monitorAlias;
+        public string MonitorAlias
+        {
+            get { return _monitorAlias; }
+        }
+
         private string _monitorDirectory;
-        public string MonitorDirectroy
+
+        public string MonitorDirectory
         {
             get { return _monitorDirectory; }
         }
+
+
         #endregion
 
         #region 构造函数
-        public SendFileProcess(string monitorDirectory)
+        public SendFileProcess(string monitorAlias, string monitorDirectory)
         {
+            _monitorAlias = monitorAlias;
             _monitorDirectory = monitorDirectory;
         }
         #endregion
@@ -76,7 +86,7 @@ namespace FileTransfer.FileWatcher
         {
             foreach (var files in filesCollection)
             {
-                Task<FilesRecord>[] tasks = SynchronousSocketManager.Instance.SendFiles(_monitorDirectory, files);
+                Task<FilesRecord>[] tasks = SynchronousSocketManager.Instance.SendFiles(_monitorAlias, _monitorDirectory, files);
                 if (tasks != null)
                 {
                     Task contiuneTask = SaveOrDeleteFiles(tasks);
@@ -97,7 +107,7 @@ namespace FileTransfer.FileWatcher
                     records.Add(tasksArray[i].Result);
                 }
                 if (records.Count == 0) return;
-                string directory = records.First().MonitorDirectory;
+                string directory = records.First().MonitorAlias;
                 List<string> incrementFiles = records.First().IncrementFiles;
                 List<string> incompleteSendFiles = new List<string>();
                 records.ForEach(r => incompleteSendFiles.AddRange(r.IncompleteSendFiles));
@@ -105,7 +115,7 @@ namespace FileTransfer.FileWatcher
                 if (incompleteSendFiles != null && incompleteSendFiles.Count > 0)
                 {
                     var savePath = SimpleIoc.Default.GetInstance<MainViewModel>().ExceptionSavePath;
-                    IOHelper.Instance.SaveUnsendedFiles(incompleteSendFiles, _monitorDirectory, savePath);
+                    IOHelper.Instance.SaveUnsendedFiles(incompleteSendFiles, _monitorAlias, savePath);
                 }
                 if (incrementFiles != null && incrementFiles.Count > 0)
                 {

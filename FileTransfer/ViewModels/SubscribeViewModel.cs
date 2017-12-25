@@ -130,20 +130,20 @@ namespace FileTransfer.ViewModels
                 RemoteMonitorFloders = new ObservableCollection<RemoteMonitorModel>();
                 byte[] address = UtilHelper.Instance.GetIPAddressBytes(RemoteIP);
                 IPEndPoint ep = new IPEndPoint(new IPAddress(address), RemotePort);
-                List<string> remoteMonitorFloders = SynchronousSocketManager.Instance.RequestRemoteMoniterFloders(ep);
-                if (remoteMonitorFloders == null)
+                List<string> remoteMonitorAlias = SynchronousSocketManager.Instance.RequestRemoteMoniterFloders(ep);
+                if (remoteMonitorAlias == null)
                     SimpleIoc.Default.GetInstance<MainViewModel>().NotifyText = string.Format("{0}：检测{1}的监控文件夹时无法正常连接！", DateTime.Now, ep);
-                else if (remoteMonitorFloders.Count == 0)
+                else if (remoteMonitorAlias.Count == 0)
                     SimpleIoc.Default.GetInstance<MainViewModel>().NotifyText = string.Format("{0}：检测{1}的监控文件夹时无监控文件夹！", DateTime.Now, ep);
                 else
                 {
-                    remoteMonitorFloders = remoteMonitorFloders.Distinct().ToList();
-                    var monitorFloders = new ObservableCollection<RemoteMonitorModel>();
-                    foreach (var f in remoteMonitorFloders)
+                    remoteMonitorAlias = remoteMonitorAlias.Distinct().ToList();
+                    var monitorAlias = new ObservableCollection<RemoteMonitorModel>();
+                    foreach (var alias in remoteMonitorAlias)
                     {
-                        monitorFloders.Add(new RemoteMonitorModel(f));
+                        monitorAlias.Add(new RemoteMonitorModel(alias));
                     }
-                    RemoteMonitorFloders = monitorFloders;
+                    RemoteMonitorFloders = monitorAlias;
                 }
                 //恢复检测监控文件夹按钮
                 _canRequestMonitorFloders = true;
@@ -169,10 +169,10 @@ namespace FileTransfer.ViewModels
         private void ExecuteConfirmCommand()
         {
             string remoteAddress = string.Format("{0}:{1}", RemoteIP, RemotePort);
-            string monitorDirectory = RemoteMonitorFloders.Where(m => m.IsSelected == true).ElementAt(0).RemoteMonitorFloder;
+            string monitorAlias = RemoteMonitorFloders.Where(m => m.IsSelected == true).ElementAt(0).RemoteMonitorFloder;
             string acceptDirectiory = AcceptFilePath;
-            SubscribeModel subscribe = new SubscribeModel() { MonitorIP = RemoteIP, MonitorListenPort = RemotePort, MonitorDirectory = monitorDirectory, AcceptDirectory = acceptDirectiory };
-            if (SimpleIoc.Default.GetInstance<MainViewModel>().SubscribeCollection.FirstOrDefault(s => s.MonitorIP == RemoteIP && s.MonitorDirectory == monitorDirectory && s.AcceptDirectory == acceptDirectiory) != null)
+            SubscribeModel subscribe = new SubscribeModel() { MonitorIP = RemoteIP, MonitorListenPort = RemotePort, MonitorAlias = monitorAlias, AcceptDirectory = acceptDirectiory };
+            if (SimpleIoc.Default.GetInstance<MainViewModel>().SubscribeCollection.FirstOrDefault(s => s.MonitorIP == RemoteIP && s.MonitorAlias == monitorAlias && s.AcceptDirectory == acceptDirectiory) != null)
             {
                 MessageBox.Show("接收配置中已有相同项！", "提醒", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
@@ -181,7 +181,7 @@ namespace FileTransfer.ViewModels
             ConfigHelper.Instance.SaveSettings();
             byte[] ipBytes = UtilHelper.Instance.GetIPAddressBytes(RemoteIP);
             IPEndPoint remote = new IPEndPoint(new IPAddress(ipBytes), RemotePort);
-            SynchronousSocketManager.Instance.SendSubscribeInfo(remote, monitorDirectory);
+            SynchronousSocketManager.Instance.SendSubscribeInfo(remote, monitorAlias);
             Messenger.Default.Send<string>("CloseSubscribeView");
         }
 

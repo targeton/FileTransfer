@@ -23,13 +23,13 @@ namespace FileTransfer.Sockets
         {
             if (param == null || param.Length != 2) return null;
             var localListenPort = (int)param[0];
-            var monitorDirectory = (string)param[1];
+            var monitorAlias = (string)param[1];
             byte[] sendBytes = new byte[4];
             byte[] portBytes = BitConverter.GetBytes(localListenPort);
             portBytes.CopyTo(sendBytes, 0);
             _client.Send(sendBytes, 0, 4, SocketFlags.None);
             //发送订阅的监控文件夹
-            byte[] floderBytes = Encoding.Unicode.GetBytes(monitorDirectory);
+            byte[] floderBytes = Encoding.Unicode.GetBytes(monitorAlias);
             sendBytes = new byte[4];
             BitConverter.GetBytes(floderBytes.Length).CopyTo(sendBytes, 0);
             _client.Send(sendBytes, 0, 4, SocketFlags.None);

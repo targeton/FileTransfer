@@ -27,7 +27,7 @@ namespace FileTransfer.Sockets
 
         private List<string> GetMonitorFolders()
         {
-            List<String> moniterFloders = new List<string>();
+            List<String> moniterAlias = new List<string>();
             byte[] receiveBytes = new byte[4];
             int byteRec = _client.Receive(receiveBytes, 0, 4, SocketFlags.None);
             int flodersNum = BitConverter.ToInt32(receiveBytes.Take(byteRec).ToArray(), 0);
@@ -40,7 +40,7 @@ namespace FileTransfer.Sockets
                 receiveBytes = new byte[receiveNum];
                 byteRec = _client.Receive(receiveBytes, 0, receiveNum, SocketFlags.None);
                 string floder = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec);
-                moniterFloders.Add(floder);
+                moniterAlias.Add(floder);
                 index++;
                 Thread.Sleep(1);
             }
@@ -54,7 +54,7 @@ namespace FileTransfer.Sockets
                 _logger.Warn(msg);
                 LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "WARN", msg));
             }
-            return moniterFloders;
+            return moniterAlias;
         }
 
         #endregion

@@ -27,15 +27,15 @@ namespace FileTransfer.IO
         #endregion
 
         #region 构造函数
-        public WriteFileManager(string monitorIP, string monitorDirectory)
+        public WriteFileManager(string monitorIP, string monitorAlias)
         {
             _monitorIP = monitorIP;
-            _monitorDirectory = monitorDirectory;
-            List<string> acceptDirectories = GetAcceptDirectories(monitorIP, monitorDirectory);
+            _monitorDirectory = monitorAlias;
+            List<string> acceptDirectories = GetAcceptDirectories(monitorIP, monitorAlias);
             _writers = new List<WriteFile>();
             foreach (var directory in acceptDirectories)
             {
-                var writer = new WriteFile(directory, monitorIP, monitorDirectory);
+                var writer = new WriteFile(directory, monitorIP, monitorAlias);
                 _writers.Add(writer);
             }
         }
@@ -45,10 +45,10 @@ namespace FileTransfer.IO
             _hasOccurException = true;
         }
 
-        private List<string> GetAcceptDirectories(string monitorIP, string monitorDirectory)
+        private List<string> GetAcceptDirectories(string monitorIP, string monitorAlias)
         {
             _exceptionSavePath = SimpleIoc.Default.GetInstance<MainViewModel>().ExceptionSavePath;
-            List<string> acceptDirectories = SimpleIoc.Default.GetInstance<MainViewModel>().SubscribeCollection.Where(s => s.MonitorIP == monitorIP && s.MonitorDirectory == monitorDirectory).Select(s => s.AcceptDirectory).ToList();
+            List<string> acceptDirectories = SimpleIoc.Default.GetInstance<MainViewModel>().SubscribeCollection.Where(s => s.MonitorIP == monitorIP && s.MonitorAlias == monitorAlias).Select(s => s.AcceptDirectory).ToList();
             if (acceptDirectories.Count == 0)
             {
                 _hasOccurException = true;

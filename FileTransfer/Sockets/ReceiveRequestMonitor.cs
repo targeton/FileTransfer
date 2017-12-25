@@ -22,13 +22,13 @@ namespace FileTransfer.Sockets
         #region 重构函数
         public override void SocketPorcess(Socket socket)
         {
-            List<string> floders = SimpleIoc.Default.GetInstance<MainViewModel>().MonitorCollection.Select(m => m.MonitorDirectory).ToList();
+            List<string> alias = SimpleIoc.Default.GetInstance<MainViewModel>().MonitorCollection.Select(m => m.MonitorAlias).ToList();
             try
             {
                 ////配置Socket的发送Timeout
                 //socket.SendTimeout = SOCKET_SEND_TIMEOUT;
                 //先发送总个数
-                int floderNum = floders.Count;
+                int floderNum = alias.Count;
                 byte[] numBytes = new byte[4];
                 BitConverter.GetBytes(floderNum).CopyTo(numBytes, 0);
                 socket.Send(numBytes, 0, 4, SocketFlags.None);
@@ -37,7 +37,7 @@ namespace FileTransfer.Sockets
                 while (index < floderNum)
                 {
                     numBytes = new byte[4];
-                    byte[] sendBytes = Encoding.Unicode.GetBytes(floders[index]);
+                    byte[] sendBytes = Encoding.Unicode.GetBytes(alias[index]);
                     BitConverter.GetBytes(sendBytes.Length).CopyTo(numBytes, 0);
                     socket.Send(numBytes, 0, 4, SocketFlags.None);
                     socket.Send(sendBytes, 0, sendBytes.Length, SocketFlags.None);

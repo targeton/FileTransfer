@@ -57,7 +57,7 @@
                                     </dxg:GridColumn.EditSettings>
                                 </dxg:GridColumn>
                                 <dxg:GridColumn Header="监控IP" MinWidth="60" Width="150" FieldName="MonitorIP"></dxg:GridColumn>
-                                <dxg:GridColumn Header="监控文件夹" MinWidth="60" Width="250" FieldName="MonitorDirectory"></dxg:GridColumn>
+                                <dxg:GridColumn Header="监控别名" MinWidth="60" Width="250" FieldName="MonitorAlias"></dxg:GridColumn>
                                 <dxg:GridColumn Header="接收状态" MinWidth="60" FieldName="ReceiveFileState"></dxg:GridColumn>
                             </dxg:GridControl.Columns>
                             <dxg:GridControl.TotalSummary>

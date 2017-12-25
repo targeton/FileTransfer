@@ -20,20 +20,20 @@ namespace FileTransfer.DbHelper.Entitys
         public virtual string ReceiveFile { get; set; }
         [Property(TypeType = typeof(string), Column = "MonitorIP")]
         public virtual string MonitorIP { get; set; }
-        [Property(TypeType = typeof(string), Column = "MonitorDirectory")]
-        public virtual string MonitorDirectory { get; set; }
+        [Property(TypeType = typeof(string), Column = "MonitorAlias")]
+        public virtual string MonitorAlias { get; set; }
         [Property(TypeType = typeof(string), Column = "ReceiveState")]
         public virtual string ReceiveState { get; set; }
 
         public ReceiveLogEntity()
         { }
 
-        public ReceiveLogEntity(DateTime receiveTime, string receiveFile, string monitoIP, string monitorDirectory, string receiveState)
+        public ReceiveLogEntity(DateTime receiveTime, string receiveFile, string monitoIP, string monitorAlias, string receiveState)
         {
             ReceiveDate = receiveTime;
             ReceiveFile = receiveFile;
             MonitorIP = monitoIP;
-            MonitorDirectory = monitorDirectory;
+            MonitorAlias = monitorAlias;
             ReceiveState = receiveState;
         }
 

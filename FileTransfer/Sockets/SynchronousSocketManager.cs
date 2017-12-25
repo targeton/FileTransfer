@@ -22,7 +22,7 @@ namespace FileTransfer.Sockets
     class SynchronousSocketManager
     {
         #region 常量
-        
+
         #endregion
 
         #region 变量
@@ -178,34 +178,34 @@ namespace FileTransfer.Sockets
             return result;
         }
 
-        public void SendSubscribeInfo(IPEndPoint remote, string monitorDirectory)
+        public void SendSubscribeInfo(IPEndPoint remote, string monitorAlias)
         {
             SendContext context = new SendContext(@"$RFS#");
             object[] param = new object[2];
             param[0] = LocalListenPort;
-            param[1] = monitorDirectory;
+            param[1] = monitorAlias;
             context.ConnectToRemot(remote, param);
         }
 
-        public Task<FilesRecord>[] SendFiles(string monitorDirectory, List<string> monitorIncrement)
+        public Task<FilesRecord>[] SendFiles(string monitorAlias, string monitorDirectory, List<string> monitorIncrement)
         {
             //获取订阅该监控文件夹的订阅信息
-            var monitorModel = SimpleIoc.Default.GetInstance<MainViewModel>().MonitorCollection.FirstOrDefault(m => m.MonitorDirectory == monitorDirectory);
+            var monitorModel = SimpleIoc.Default.GetInstance<MainViewModel>().MonitorCollection.FirstOrDefault(m => m.MonitorAlias == monitorAlias);
             if (monitorModel == null)
             {
-                string msg = string.Format("{0}：准备发送{1}下的文件时无法获取订阅信息！", DateTime.Now, monitorDirectory);
+                string msg = string.Format("{0}：准备发送{1}下的文件时无法获取订阅信息！", DateTime.Now, monitorAlias);
                 _logger.Warn(msg);
                 LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "WARN", msg));
-                string.Format("{0}：准备发送{1}下的文件时无法获取订阅信息！", DateTime.Now, monitorDirectory).RefreshUINotifyText();
+                string.Format("{0}：准备发送{1}下的文件时无法获取订阅信息！", DateTime.Now, monitorAlias).RefreshUINotifyText();
                 return null;
             }
             List<SubscribeInfoModel> subscribeInfos = monitorModel.SubscribeInfos.ToList();
             if (subscribeInfos == null || subscribeInfos.Count == 0)
             {
-                string msg = string.Format("{0}：准备发送{1}下的文件时发现无任何订阅信息！", DateTime.Now, monitorDirectory);
+                string msg = string.Format("{0}：准备发送{1}下的文件时发现无任何订阅信息！", DateTime.Now, monitorAlias);
                 _logger.Warn(msg);
                 LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "WARN", msg));
-                string.Format("{0}：准备发送{1}下的文件时发现无任何订阅信息！", DateTime.Now, monitorDirectory).RefreshUINotifyText();
+                string.Format("{0}：准备发送{1}下的文件时发现无任何订阅信息！", DateTime.Now, monitorAlias).RefreshUINotifyText();
                 return null;
             }
             try
@@ -217,6 +217,7 @@ namespace FileTransfer.Sockets
                     tasks.Add(Task<FilesRecord>.Factory.StartNew(
                         new Func<object, FilesRecord>(SendFilesToSubscribe), new FilesRecord()
                         {
+                            MonitorAlias = monitorAlias,
                             MonitorDirectory = monitorDirectory,
                             SubscribeInfo = subscribeInfo,
                             IncrementFiles = monitorIncrement
@@ -237,6 +238,7 @@ namespace FileTransfer.Sockets
         {
             FilesRecord record = obj as FilesRecord;
             if (record == null || record.SubscribeInfo == null || record.IncrementFiles == null) return null;
+            string monitorAlias = record.MonitorAlias;
             string monitorDirectory = record.MonitorDirectory;
             List<string> monitorIncrement = record.IncrementFiles;
             record.IncompleteSendFiles = monitorIncrement;
@@ -244,43 +246,44 @@ namespace FileTransfer.Sockets
             string remoteEndPoint = info.SubscribeIP;
 
             SendContext context = new SendContext(@"$BTF#");
-            object[] param = new object[2];
-            param[0] = monitorDirectory;
-            param[1] = monitorIncrement;
+            object[] param = new object[3];
+            param[0] = monitorAlias;
+            param[1] = monitorDirectory;
+            param[2] = monitorIncrement;
             IPEndPoint remote = UtilHelper.Instance.GetIPEndPoint(remoteEndPoint);
             object feedback = context.ConnectToRemot(remote, param);
 
             List<string> sendedFiles = feedback as List<string>;
             if (sendedFiles != null)
             {
-                List<string>  unsendedFiles = monitorIncrement.Except(sendedFiles).ToList();
+                List<string> unsendedFiles = monitorIncrement.Except(sendedFiles).ToList();
                 record.IncompleteSendFiles = unsendedFiles;
             }
             return record;
         }
 
-        public void SendDeleteMonitorInfo(IPEndPoint remote, string monitorDirectory)
+        public void SendDeleteMonitorInfo(IPEndPoint remote, string monitorAlias)
         {
             SendContext context = new SendContext(@"$DMF#");
             object[] param = new object[1];
-            param[0] = monitorDirectory;
+            param[0] = monitorAlias;
             context.ConnectToRemot(remote, param);
         }
 
-        public void SendUnregisterSubscribeInfo(IPEndPoint remote, string monitorDirectory)
+        public void SendUnregisterSubscribeInfo(IPEndPoint remote, string monitorAlias)
         {
             SendContext context = new SendContext(@"$DSF#");
             object[] param = new object[2];
-            param[0] = monitorDirectory;
+            param[0] = monitorAlias;
             param[1] = LocalListenPort;
             context.ConnectToRemot(remote, param);
         }
 
-        public void SendOnlineOfflineInfo(IPEndPoint remote, string monitorDirectory, bool online = true)
+        public void SendOnlineOfflineInfo(IPEndPoint remote, string monitorAlias, bool online = true)
         {
             SendContext context = new SendContext(@"$OFL#");
             object[] param = new object[3];
-            param[0] = monitorDirectory;
+            param[0] = monitorAlias;
             param[1] = LocalListenPort;
             param[2] = online;
             context.ConnectToRemot(remote, param);

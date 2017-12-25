@@ -35,7 +35,7 @@ namespace FileTransfer.Views
 
         private void Window_Closed(object sender, EventArgs e)
         {
-            SimpleIoc.Default.Unregister<SubscribeViewModel>();
+            //SimpleIoc.Default.Unregister<SubscribeViewModel>();
         }
     }
 }

@@ -20,7 +20,7 @@ namespace FileTransfer.IO
         private static ILog _logger = LogManager.GetLogger(typeof(WriteFile));
         private string _directory = string.Empty;
         private string _monitorIP = string.Empty;
-        private string _monitorDirectory = string.Empty;
+        private string _monitorAlias = string.Empty;
         private FileStream _writeStream = null;
         private long _currentFileSize = 0;
         private long _currentStreamIndex = 0;
@@ -37,11 +37,11 @@ namespace FileTransfer.IO
         #endregion
 
         #region 构造方法
-        public WriteFile(string directory, string monitorIP, string monitorDirectory)
+        public WriteFile(string directory, string monitorIP, string monitorAlias)
         {
             _directory = directory;
             _monitorIP = monitorIP;
-            _monitorDirectory = monitorDirectory;
+            _monitorAlias = monitorAlias;
         }
         #endregion
 
@@ -63,8 +63,8 @@ namespace FileTransfer.IO
                             //TODO:根据发送的文件名转换成接收的文件名
                             _currentFileName = Path.Combine(_directory, receiveFileName);
                             IOHelper.Instance.CheckAndCreateDirectory(_currentFileName);
-                            LogHelper.Instance.ReceiveLogger.Add(new ReceiveLogEntity(DateTime.Now, _currentFileName, _monitorIP, _monitorDirectory, @"开始接收"));
-                            SimpleIoc.Default.GetInstance<MainViewModel>().ShowAcceptProgress(_monitorIP, _monitorDirectory, _directory, _currentFileName, 0.0);
+                            LogHelper.Instance.ReceiveLogger.Add(new ReceiveLogEntity(DateTime.Now, _currentFileName, _monitorIP, _monitorAlias, @"开始接收"));
+                            SimpleIoc.Default.GetInstance<MainViewModel>().ShowAcceptProgress(_monitorIP, _monitorAlias, _directory, _currentFileName, 0.0);
                             _writeStream = new FileStream(_currentFileName, FileMode.Create, FileAccess.Write);
                             break;
                         case WriteDataType.FileContent:
@@ -73,11 +73,11 @@ namespace FileTransfer.IO
                             _writeStream.Seek(_currentStreamIndex, SeekOrigin.Begin);
                             _writeStream.Write(item.DataBuffer, 0, item.DataBuffer.Length);
                             _currentStreamIndex += item.DataBuffer.Length;
-                            SimpleIoc.Default.GetInstance<MainViewModel>().ShowAcceptProgress(_monitorIP, _monitorDirectory, _directory, _currentFileName, _currentStreamIndex * 1.0 / _currentFileSize);
+                            SimpleIoc.Default.GetInstance<MainViewModel>().ShowAcceptProgress(_monitorIP, _monitorAlias, _directory, _currentFileName, _currentStreamIndex * 1.0 / _currentFileSize);
                             if (_currentStreamIndex >= _currentFileSize)
                             {
                                 _writeStream.Close();
-                                LogHelper.Instance.ReceiveLogger.Add(new ReceiveLogEntity(DateTime.Now, _currentFileName, _monitorIP, _monitorDirectory, @"完成接收"));
+                                LogHelper.Instance.ReceiveLogger.Add(new ReceiveLogEntity(DateTime.Now, _currentFileName, _monitorIP, _monitorAlias, @"完成接收"));
                             }
                             break;
                         default:

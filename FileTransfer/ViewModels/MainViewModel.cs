@@ -140,6 +140,8 @@ namespace FileTransfer.ViewModels
         public RelayCommand AddSubscibeCommand { get; set; }
         public RelayCommand<bool> SetListenPortCommand { get; set; }
         public RelayCommand SetSendExceptionCommand { get; set; }
+        public RelayCommand<string> ChangeMonitorCommand { get; set; }
+        public RelayCommand<string> ChangeSubscribeCommand { get; set; }
         #endregion
 
         #region 构造函数
@@ -171,6 +173,24 @@ namespace FileTransfer.ViewModels
             AddSubscibeCommand = new RelayCommand(ExecuteAddSubscibeCommand, CanExecuteAddSubscibeCommand);
             SetListenPortCommand = new RelayCommand<bool>(ExecuteSetListenPortCommand);
             SetSendExceptionCommand = new RelayCommand(ExecuteSetSendExceptionCommand);
+            ChangeMonitorCommand = new RelayCommand<string>(ExecuteChangeMonitorCommand);
+            ChangeSubscribeCommand = new RelayCommand<string>(ExeucteChangeSubscribeCommand);
+        }
+
+        private void ExeucteChangeSubscribeCommand(string oldAcceptDirectory)
+        {
+            var subscribe = SubscribeCollection.First(s => s.AcceptDirectory == oldAcceptDirectory);
+            var selectedPath = IOHelper.Instance.SelectFloder(@"请选择新的接收路径");
+            if (!string.IsNullOrEmpty(selectedPath))
+                subscribe.AcceptDirectory = selectedPath;
+        }
+
+        private void ExecuteChangeMonitorCommand(string oldMonitorDirectory)
+        {
+            var monitor = MonitorCollection.First(m => m.MonitorDirectory == oldMonitorDirectory);
+            var selectedPath = IOHelper.Instance.SelectFloder(@"请选择新的监控路径");
+            if (!string.IsNullOrEmpty(selectedPath))
+                monitor.MonitorDirectory = selectedPath;
         }
 
         private void ExecuteControlMonitorCommand(bool control)
@@ -252,26 +272,6 @@ namespace FileTransfer.ViewModels
         private void ExecuteAddMonitorCommand()
         {
             Messenger.Default.Send<string>("ShowAddMonitorView");
-            //string selectedPath = IOHelper.Instance.SelectFloder(@"请选择监控文件夹目录");
-            //if (string.IsNullOrEmpty(selectedPath))
-            //{
-            //    MessageBox.Show("未选中任何文件夹！", "提醒", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            //    return;
-            //}
-            //if (IOHelper.Instance.IsConflict(selectedPath, ExceptionSavePath))
-            //{
-            //    MessageBox.Show("所选文件夹与发送异常转存路径冲突！", "提醒", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            //}
-            //else
-            //{
-            //    if (MonitorCollection.FirstOrDefault(m => m.MonitorDirectory == selectedPath) == null)
-            //    {
-            //        MonitorCollection.Add(new MonitorModel() { MonitorDirectory = selectedPath, DeleteFiles = true });
-            //        ConfigHelper.Instance.SaveSettings();
-            //    }
-            //    else
-            //        MessageBox.Show("所选文件夹已在监控目录中！", "提醒", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            //}
         }
 
         private void ExecuteDeleteMonitorSettingCommand(object deleteItem)
@@ -293,7 +293,7 @@ namespace FileTransfer.ViewModels
             {
                 foreach (var subscribeInfo in monitorModel.SubscribeInfos)
                 {
-                    SynchronousSocketManager.Instance.SendDeleteMonitorInfo(UtilHelper.Instance.GetIPEndPoint(subscribeInfo.SubscribeIP), monitorModel.MonitorDirectory);
+                    SynchronousSocketManager.Instance.SendDeleteMonitorInfo(UtilHelper.Instance.GetIPEndPoint(subscribeInfo.SubscribeIP), monitorModel.MonitorAlias);
                 }
             });
         }
@@ -314,8 +314,8 @@ namespace FileTransfer.ViewModels
             //删除接收配置后，综合接收配置决定是否通知监控端删除订阅信息
             Task.Factory.StartNew(() =>
             {
-                if (SubscribeCollection.FirstOrDefault(s => s.MonitorIP == subscribeModel.MonitorIP && s.MonitorDirectory == subscribeModel.MonitorDirectory) == null)
-                    SynchronousSocketManager.Instance.SendUnregisterSubscribeInfo(UtilHelper.Instance.GetIPEndPoint(string.Format("{0}:{1}", subscribeModel.MonitorIP, subscribeModel.MonitorListenPort)), subscribeModel.MonitorDirectory);
+                if (SubscribeCollection.FirstOrDefault(s => s.MonitorIP == subscribeModel.MonitorIP && s.MonitorAlias == subscribeModel.MonitorAlias) == null)
+                    SynchronousSocketManager.Instance.SendUnregisterSubscribeInfo(UtilHelper.Instance.GetIPEndPoint(string.Format("{0}:{1}", subscribeModel.MonitorIP, subscribeModel.MonitorListenPort)), subscribeModel.MonitorAlias);
             });
         }
 
@@ -355,29 +355,29 @@ namespace FileTransfer.ViewModels
             });
         }
 
-        private void ShowCompleteAcceptFile(string monitorIp, string monitorDirectory)
-        {
-            SubscribeCollection.Where(s => s.MonitorIP == monitorIp && s.MonitorDirectory == monitorDirectory).ToList().ForEach(s =>
-            {
-                s.AcceptFileName = @"";
-                s.AcceptFilePercent = 0.0;
-            });
-        }
+        //private void ShowCompleteAcceptFile(string monitorIp, string monitorDirectory)
+        //{
+        //    SubscribeCollection.Where(s => s.MonitorIP == monitorIp && s.MonitorAlias == monitorDirectory).ToList().ForEach(s =>
+        //    {
+        //        s.AcceptFileName = @"";
+        //        s.AcceptFilePercent = 0.0;
+        //    });
+        //}
 
-        private void ShowCompleteSendFile(string monitor)
-        {
-            var monitorModel = MonitorCollection.FirstOrDefault(m => m.MonitorDirectory == monitor);
-            if (monitorModel == null) return;
-            monitorModel.SubscribeInfos.ToList().ForEach(s =>
-            {
-                s.TransferFileName = @"";
-                s.TransferPercent = 0.0;
-            });
-        }
+        //private void ShowCompleteSendFile(string monitor)
+        //{
+        //    var monitorModel = MonitorCollection.FirstOrDefault(m => m.MonitorDirectory == monitor);
+        //    if (monitorModel == null) return;
+        //    monitorModel.SubscribeInfos.ToList().ForEach(s =>
+        //    {
+        //        s.TransferFileName = @"";
+        //        s.TransferPercent = 0.0;
+        //    });
+        //}
 
-        public void ShowAcceptProgress(string monitorIp, string monitorDirectory, string acceptDirectory, string receiveFile, double progress)
+        public void ShowAcceptProgress(string monitorIp, string monitorAlias, string acceptDirectory, string receiveFile, double progress)
         {
-            var subscribeModel = SubscribeCollection.FirstOrDefault(s => s.MonitorIP == monitorIp && s.MonitorDirectory == monitorDirectory && s.AcceptDirectory == acceptDirectory);
+            var subscribeModel = SubscribeCollection.FirstOrDefault(s => s.MonitorIP == monitorIp && s.MonitorAlias == monitorAlias && s.AcceptDirectory == acceptDirectory);
             if (subscribeModel == null) return;
             subscribeModel.AcceptFileName = receiveFile;
             subscribeModel.AcceptFilePercent = progress;
@@ -385,7 +385,7 @@ namespace FileTransfer.ViewModels
 
         public void ShowSendProgress(string monitor, string remote, string sendFile, double progerss)
         {
-            var monitorModel = MonitorCollection.FirstOrDefault(m => m.MonitorDirectory == monitor);
+            var monitorModel = MonitorCollection.FirstOrDefault(m => m.MonitorAlias == monitor);
             if (monitorModel == null) return;
             monitorModel.SubscribeInfos.Where(s => s.SubscribeIP == remote).ToList().ForEach(s =>
             {
@@ -464,9 +464,9 @@ namespace FileTransfer.ViewModels
         #endregion
 
         #region 公共方法
-        public void CompleteMonitorSetting(string monitorDirectory, string subscribeIP)
+        public void CompleteMonitorSetting(string monitorAlias, string subscribeIP)
         {
-            var monitor = MonitorCollection.FirstOrDefault(m => m.MonitorDirectory == monitorDirectory);
+            var monitor = MonitorCollection.FirstOrDefault(m => m.MonitorAlias == monitorAlias);
             if (monitor == null) return;
             if (monitor.SubscribeInfos == null)
                 monitor.SubscribeInfos = new ObservableCollection<SubscribeInfoModel>();
@@ -482,9 +482,9 @@ namespace FileTransfer.ViewModels
             ConfigHelper.Instance.SaveSettings();
         }
 
-        public void RemoveMonitorSetting(string monitorDirectory, string subscribeIP)
+        public void RemoveMonitorSetting(string monitorAlias, string subscribeIP)
         {
-            var monitor = MonitorCollection.FirstOrDefault(m => m.MonitorDirectory == monitorDirectory);
+            var monitor = MonitorCollection.FirstOrDefault(m => m.MonitorAlias == monitorAlias);
             if (monitor == null) return;
             if (monitor.SubscribeInfos == null || monitor.SubscribeInfos.Count == 0) return;
             var collection = new ObservableCollection<SubscribeInfoModel>();
@@ -501,9 +501,9 @@ namespace FileTransfer.ViewModels
             ConfigHelper.Instance.SaveSettings();
         }
 
-        public void RemoveAcceptSettings(string monitorIP, string monitorDirectory)
+        public void RemoveAcceptSettings(string monitorIP, string monitorAlias)
         {
-            var accepts = SubscribeCollection.Where(s => s.MonitorIP == monitorIP && s.MonitorDirectory == monitorDirectory).ToList();
+            var accepts = SubscribeCollection.Where(s => s.MonitorIP == monitorIP && s.MonitorAlias == monitorAlias).ToList();
             App.Current.Dispatcher.BeginInvoke(new Action(() =>
             {
                 foreach (var accept in accepts)
@@ -514,9 +514,9 @@ namespace FileTransfer.ViewModels
             ConfigHelper.Instance.SaveSettings();
         }
 
-        public void RefreshConnectStatus(string monitorDirectory, string subscribeIP, bool online = true)
+        public void RefreshConnectStatus(string monitorAlias, string subscribeIP, bool online = true)
         {
-            var monitor = MonitorCollection.FirstOrDefault(m => m.MonitorDirectory == monitorDirectory);
+            var monitor = MonitorCollection.FirstOrDefault(m => m.MonitorAlias == monitorAlias);
             if (monitor == null) return;
             if (monitor.SubscribeInfos == null || monitor.SubscribeInfos.Count == 0) return;
             var subscribeInfo = monitor.SubscribeInfos.FirstOrDefault(s => s.SubscribeIP == subscribeIP);
@@ -597,14 +597,14 @@ namespace FileTransfer.ViewModels
 
         private void NotifyOnlineOffline(bool online = true)
         {
-            var collection = SubscribeCollection.Select(s => string.Format("{0}:{1}|{2}", s.MonitorIP, s.MonitorListenPort, s.MonitorDirectory)).ToList().Distinct();
+            var collection = SubscribeCollection.Select(s => string.Format("{0}:{1}|{2}", s.MonitorIP, s.MonitorListenPort, s.MonitorAlias)).ToList().Distinct();
             foreach (var str in collection)
             {
                 string[] strArray = str.Split(new char[] { '|' });
                 if (strArray.Length != 2) continue;
                 string monitorIP = strArray[0];
-                string monitorDirectory = strArray[1];
-                SynchronousSocketManager.Instance.SendOnlineOfflineInfo(UtilHelper.Instance.GetIPEndPoint(monitorIP), monitorDirectory, online);
+                string monitorAlias = strArray[1];
+                SynchronousSocketManager.Instance.SendOnlineOfflineInfo(UtilHelper.Instance.GetIPEndPoint(monitorIP), monitorAlias, online);
             }
         }
         #endregion

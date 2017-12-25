@@ -31,9 +31,9 @@ namespace FileTransfer.Sockets
             int directoryLength = BitConverter.ToInt32(receiveBytes.Take(byteRec).ToArray(), 0);
             receiveBytes = new byte[directoryLength];
             byteRec = socket.Receive(receiveBytes, 0, directoryLength, SocketFlags.None);
-            string monitorDirectory = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
+            string monitorAlias = Encoding.Unicode.GetString(receiveBytes.Take(byteRec).ToArray(), 0, byteRec).TrimEnd('\0');
             //注销本地订阅信息
-            SimpleIoc.Default.GetInstance<MainViewModel>().RemoveMonitorSetting(monitorDirectory, subscribeIp);
+            SimpleIoc.Default.GetInstance<MainViewModel>().RemoveMonitorSetting(monitorAlias, subscribeIp);
             //发送断开信息
             byte[] disconnectBytes = new byte[16];
             Encoding.Unicode.GetBytes("$DSK#").CopyTo(disconnectBytes, 0);
