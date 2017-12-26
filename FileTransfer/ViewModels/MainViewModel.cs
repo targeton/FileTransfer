@@ -163,6 +163,7 @@ namespace FileTransfer.ViewModels
             InitialParams();
             InitialCommands();
             VerifyLicense();
+            SqliteHelper.Instance.CreateDatabase();
         }
         #endregion
 
@@ -373,8 +374,7 @@ namespace FileTransfer.ViewModels
                 //SynchronousSocketManager.Instance.AcceptFileProgress += ShowAcceptProgress;
                 //SynchronousSocketManager.Instance.CompleteSendFile += ShowCompleteSendFile;
                 //SynchronousSocketManager.Instance.CompleteAcceptFile += ShowCompleteAcceptFile;
-                //检测记录日志的数据库是否存在，不存在则创建
-                SqliteHelper.Instance.CreateDatabase();
+                
                 _logger.Info("主窗体加载完毕!");
             });
             t.ContinueWith(v =>
