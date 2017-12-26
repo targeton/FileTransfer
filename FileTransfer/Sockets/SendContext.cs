@@ -52,7 +52,7 @@ namespace FileTransfer.Sockets
         #endregion
 
         #region 方法
-        public object ConnectToRemot(IPEndPoint remote, object[] param)
+        public object ConnectToRemote(IPEndPoint remote, object[] param)
         {
             if (_process == null) return null;
             return _process.SendToServer(remote, param);

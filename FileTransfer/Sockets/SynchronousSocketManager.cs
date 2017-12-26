@@ -160,7 +160,7 @@ namespace FileTransfer.Sockets
         {
             SendContext context = new SendContext(@"$CCR#");
             object[] param = null;
-            object feedback = context.ConnectToRemot(remote, param);
+            object feedback = context.ConnectToRemote(remote, param);
             if (feedback == null || feedback.GetType() != typeof(bool))
                 return false;
             else
@@ -176,7 +176,7 @@ namespace FileTransfer.Sockets
         {
             SendContext context = new SendContext(@"$RMF#");
             object[] param = null;
-            object feedback = context.ConnectToRemot(remote, param);
+            object feedback = context.ConnectToRemote(remote, param);
             List<string> result = feedback as List<string>;
             return result;
         }
@@ -187,7 +187,7 @@ namespace FileTransfer.Sockets
             object[] param = new object[2];
             param[0] = LocalListenPort;
             param[1] = monitorAlias;
-            context.ConnectToRemot(remote, param);
+            context.ConnectToRemote(remote, param);
         }
 
         public Task<FilesRecord>[] SendFiles(string monitorAlias, string monitorDirectory, List<string> monitorIncrement)
@@ -254,7 +254,7 @@ namespace FileTransfer.Sockets
             param[1] = monitorDirectory;
             param[2] = monitorIncrement;
             IPEndPoint remote = UtilHelper.Instance.GetIPEndPoint(remoteEndPoint);
-            object feedback = context.ConnectToRemot(remote, param);
+            object feedback = context.ConnectToRemote(remote, param);
 
             List<string> sendedFiles = feedback as List<string>;
             if (sendedFiles != null)
@@ -270,7 +270,7 @@ namespace FileTransfer.Sockets
             SendContext context = new SendContext(@"$DMF#");
             object[] param = new object[1];
             param[0] = monitorAlias;
-            context.ConnectToRemot(remote, param);
+            context.ConnectToRemote(remote, param);
         }
 
         public void SendUnregisterSubscribeInfo(IPEndPoint remote, string monitorAlias)
@@ -279,7 +279,7 @@ namespace FileTransfer.Sockets
             object[] param = new object[2];
             param[0] = monitorAlias;
             param[1] = LocalListenPort;
-            context.ConnectToRemot(remote, param);
+            context.ConnectToRemote(remote, param);
         }
 
         public void SendOnlineOfflineInfo(IPEndPoint remote, string monitorAlias, bool online = true)
@@ -289,7 +289,7 @@ namespace FileTransfer.Sockets
             param[0] = monitorAlias;
             param[1] = LocalListenPort;
             param[2] = online;
-            context.ConnectToRemot(remote, param);
+            context.ConnectToRemote(remote, param);
         }
         #endregion
 
