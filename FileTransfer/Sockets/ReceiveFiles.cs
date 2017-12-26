@@ -62,6 +62,13 @@ namespace FileTransfer.Sockets
                 writeManager.Add(new WriteDataBuffer() { DataType = WriteDataType.FileName, DataBuffer = receiveBytes });
                 //接收数据
                 long index = 0;
+                if (fileSize <= 0)
+                {
+                    writeManager.Add(new WriteDataBuffer() { DataType = WriteDataType.FileContent });
+                    fileNumIndex++;
+                    Thread.Sleep(1);
+                    continue;
+                }
                 while (index < fileSize)
                 {
                     int tempSize = 0;
@@ -77,7 +84,7 @@ namespace FileTransfer.Sockets
                 }
                 //自加一
                 fileNumIndex++;
-                Thread.Sleep(10);
+                Thread.Sleep(1);
             }
             //发送断开信息
             byte[] disconnectBytes = new byte[16];

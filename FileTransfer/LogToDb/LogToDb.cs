@@ -1,10 +1,12 @@
-﻿using FileTransfer.Utils;
+﻿using FileTransfer.DbHelper;
+using FileTransfer.Utils;
 using log4net;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Data.SQLite;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -25,10 +27,8 @@ namespace FileTransfer.LogToDb
         #region 构造函数
         public LogToSQLiteDb()
         {
-            _bufferSize = 100;
-            string exePath = System.Environment.CurrentDirectory;
-            string dbPath = System.IO.Path.Combine(exePath, "Database", "log.db");
-            _connectStr = string.Format("Data Source = {0};PRAGMA journal_mode = WAL", dbPath);
+            _bufferSize = 1000;
+            _connectStr = SqliteHelper.Instance.ConnectStr;
         }
         #endregion
 
@@ -68,7 +68,6 @@ namespace FileTransfer.LogToDb
 
         protected virtual void BatchInsertRows(DbConnection conn, IEnumerable<T> rows)
         { }
-
         #endregion
 
     }

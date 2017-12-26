@@ -128,7 +128,7 @@ namespace FileTransfer.FileWatcher
                 //如果没有增量，则继续遍历
                 if (incrementFiles == null || incrementFiles.Count <= 0)
                     continue;
-                string infoMsg = string.Format("监控文件夹{0}内新增{1}个文件", monitorAlias, incrementFiles.Count);
+                string infoMsg = string.Format("{0}对应监控文件夹{1}内新增{2}个文件", monitorAlias, monitorDirectory, incrementFiles.Count);
                 _logger.Info(infoMsg);
                 LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "INFO", infoMsg));
                 DateTime monitorTime = DateTime.Now;

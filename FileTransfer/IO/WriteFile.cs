@@ -70,6 +70,13 @@ namespace FileTransfer.IO
                         case WriteDataType.FileContent:
                             if (_writeStream == null)
                                 break;
+                            if (_currentFileSize <= 0)
+                            {
+                                SimpleIoc.Default.GetInstance<MainViewModel>().ShowAcceptProgress(_monitorIP, _monitorAlias, _directory, _currentFileName, 1.0);
+                                _writeStream.Close();
+                                LogHelper.Instance.ReceiveLogger.Add(new ReceiveLogEntity(DateTime.Now, _currentFileName, _monitorIP, _monitorAlias, @"完成接收"));
+                                break;
+                            }
                             _writeStream.Seek(_currentStreamIndex, SeekOrigin.Begin);
                             _writeStream.Write(item.DataBuffer, 0, item.DataBuffer.Length);
                             _currentStreamIndex += item.DataBuffer.Length;
