@@ -4,7 +4,8 @@
         xmlns:converter="clr-namespace:FileTransfer.Converters"
         xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
         xmlns:rule="clr-namespace:FileTransfer.ValidationRules"
-        Title="文件监控传输" Height="560" Width="1200" Loaded="Window_Loaded" Closed="Window_Closed" Closing="Window_Closing">
+        Title="文件监控传输" Height="560" Width="1200" Loaded="Window_Loaded" Closed="Window_Closed" Closing="Window_Closing" WindowStartupLocation="CenterScreen"
+        IsEnabled="{Binding Source={StaticResource Locator}, Path=MainViewModel.WindowIsEnable}">
     <Window.Resources>
         <converter:MonitorFlagConverter x:Key="MonitorFlagConverter"></converter:MonitorFlagConverter>
         <converter:SetPortConverter x:Key="SetPortConverter"></converter:SetPortConverter>

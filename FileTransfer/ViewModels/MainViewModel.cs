@@ -4,6 +4,7 @@ using FileTransfer.FileWatcher;
 using FileTransfer.IO;
 using FileTransfer.LogToDb;
 using FileTransfer.Models;
+using FileTransfer.Permission;
 using FileTransfer.Sockets;
 using FileTransfer.Utils;
 using GalaSoft.MvvmLight;
@@ -14,6 +15,7 @@ using Microsoft.WindowsAPICodePack.Dialogs;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -126,6 +128,17 @@ namespace FileTransfer.ViewModels
             }
         }
 
+        private bool _windowIsEnable;
+
+        public bool WindowIsEnable
+        {
+            get { return _windowIsEnable; }
+            set
+            {
+                _windowIsEnable = value;
+                RaisePropertyChanged("WindowIsEnable");
+            }
+        }
 
         #endregion
 
@@ -149,6 +162,7 @@ namespace FileTransfer.ViewModels
         {
             InitialParams();
             InitialCommands();
+            VerifyLicense();
         }
         #endregion
 
@@ -175,6 +189,16 @@ namespace FileTransfer.ViewModels
             SetSendExceptionCommand = new RelayCommand(ExecuteSetSendExceptionCommand);
             ChangeMonitorCommand = new RelayCommand<string>(ExecuteChangeMonitorCommand);
             ChangeSubscribeCommand = new RelayCommand<string>(ExeucteChangeSubscribeCommand);
+        }
+
+        private void VerifyLicense()
+        {
+            if (!CheckLicense())
+            {
+                MessageBox.Show("未找到License或者License无效！");
+                return;
+            }
+            WindowIsEnable = true;
         }
 
         private void ExeucteChangeSubscribeCommand(string oldAcceptDirectory)
@@ -359,6 +383,33 @@ namespace FileTransfer.ViewModels
                 //通知监控端订阅端上线
                 NotifyOnlineOffline();
             });
+        }
+
+        private bool CheckLicense()
+        {
+            bool result = false;
+            string path = Environment.CurrentDirectory;
+            List<string> files = IOHelper.Instance.GetAllFiles(path);
+            List<string> licenseList = files.Where(f => f.EndsWith(".lic")).ToList();
+            if (licenseList == null || licenseList.Count <= 0)
+                return result;
+            var confirm = new ConfirmLicense();
+            foreach (var license in licenseList)
+            {
+                using (FileStream fs = new FileStream(license, FileMode.Open, FileAccess.Read, FileShare.Read))
+                {
+                    byte[] buffer = new byte[fs.Length];
+                    fs.Seek(0, SeekOrigin.Begin);
+                    fs.Read(buffer, 0, buffer.Length);
+                    bool isMatch = confirm.VerifyData(buffer);
+                    if (isMatch == true)
+                    {
+                        result = true;
+                        break;
+                    }
+                }
+            }
+            return result;
         }
 
         //private void ShowCompleteAcceptFile(string monitorIp, string monitorDirectory)
