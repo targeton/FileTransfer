@@ -1,7 +1,7 @@
 ﻿<Window x:Class="FileTransfer.Views.AddMonitorView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="AddMonitorView" Height="160" Width="420" Closed="Window_Closed" WindowStartupLocation="CenterOwner">
+        Title="增加监控项" Height="160" Width="420" Closed="Window_Closed" WindowStartupLocation="CenterOwner">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"></RowDefinition>
