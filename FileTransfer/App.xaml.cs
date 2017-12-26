@@ -1,8 +1,4 @@
-﻿using FileTransfer.Configs;
-using FileTransfer.ViewModels;
-using GalaSoft.MvvmLight.Ioc;
-using log4net;
-using System.Linq;
+﻿using log4net;
 using System.Windows;
 
 namespace FileTransfer

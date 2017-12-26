@@ -5,17 +5,13 @@ using GalaSoft.MvvmLight.Ioc;
 using log4net;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using FileTransfer.Models;
 using FileTransfer.LogToDb;
 using FileTransfer.DbHelper.Entitys;
-using FileTransfer.IO;
 
 namespace FileTransfer.Sockets
 {

@@ -1,13 +1,10 @@
-﻿using FileTransfer.Models;
-using FileTransfer.ViewModels;
+﻿using FileTransfer.ViewModels;
 using GalaSoft.MvvmLight.Ioc;
 using log4net;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Timers;
 using FileTransfer.LogToDb;
 using FileTransfer.DbHelper.Entitys;

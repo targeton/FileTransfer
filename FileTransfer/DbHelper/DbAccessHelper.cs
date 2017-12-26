@@ -1,16 +1,11 @@
 ﻿using FileTransfer.DbHelper.Entitys;
 using FileTransfer.LogToDb;
-using FileTransfer.Models;
 using log4net;
 using NHibernate;
 using NHibernate.Cfg;
 using NHibernate.Mapping.Attributes;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FileTransfer.DbHelper
 {

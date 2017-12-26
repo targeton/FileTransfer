@@ -1,20 +1,16 @@
 ﻿using FileTransfer.DbHelper.Entitys;
-using FileTransfer.FileWatcher;
 using FileTransfer.IO;
 using FileTransfer.LogToDb;
-using FileTransfer.Models;
 using FileTransfer.Utils;
 using FileTransfer.ViewModels;
 using GalaSoft.MvvmLight.Ioc;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace FileTransfer.Sockets
 {

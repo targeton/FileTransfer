@@ -2,7 +2,6 @@
 using FileTransfer.DbHelper.Entitys;
 using FileTransfer.LogToDb;
 using FileTransfer.Models;
-using FileTransfer.Utils;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using log4net;

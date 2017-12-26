@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using FileTransfer.Sockets;
 using FileTransfer.ViewModels;
 using GalaSoft.MvvmLight.Ioc;
-using log4net;
 using FileTransfer.Utils;
 using FileTransfer.IO;
 
