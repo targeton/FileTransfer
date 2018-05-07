@@ -92,48 +92,61 @@ namespace FileTransfer.ViewModels
             LogHelper.Instance.ErrorLogger.NotifyInsertRows = UpdateErrorLogs;
         }
 
+        private delegate void UpdateSendLogsDelegate(IEnumerable<SendLogEntity> logs);
+        private delegate void UpdateReceiveLogsDelegate(IEnumerable<ReceiveLogEntity> logs);
+        private delegate void UpdateMonitorLogsDelegate(IEnumerable<MonitorLogEntity> logs);
+        private delegate void UpdateErrorLogsDelegate(IEnumerable<ErrorLogEntity> logs);
+
         private void UpdateSendLogs(IEnumerable<SendLogEntity> logs)
         {
-            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            System.Windows.Application.Current.Dispatcher.Invoke(new UpdateSendLogsDelegate(RefreshSendLogs), logs);
+        }
+
+        private void RefreshSendLogs(IEnumerable<SendLogEntity> logs)
+        {
+            foreach (var log in logs)
             {
-                foreach (var log in logs)
-                {
-                    SendLogs.Insert(0, new SendLogModel(log));
-                }
-            });
+                SendLogs.Insert(0, new SendLogModel(log));
+            }
         }
 
         private void UpdateReceiveLogs(IEnumerable<ReceiveLogEntity> logs)
         {
-            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            System.Windows.Application.Current.Dispatcher.Invoke(new UpdateReceiveLogsDelegate(RefreshReceiveLogs), logs);
+        }
+
+        private void RefreshReceiveLogs(IEnumerable<ReceiveLogEntity> logs)
+        {
+            foreach (var log in logs)
             {
-                foreach (var log in logs)
-                {
-                    ReceiveLogs.Insert(0, new ReceiveLogModel(log));
-                }
-            });
+                ReceiveLogs.Insert(0, new ReceiveLogModel(log));
+            }
         }
 
         private void UpdateMonitorLogs(IEnumerable<MonitorLogEntity> logs)
         {
-            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            System.Windows.Application.Current.Dispatcher.Invoke(new UpdateMonitorLogsDelegate(RefreshMonitorLogs), logs);
+        }
+
+        private void RefreshMonitorLogs(IEnumerable<MonitorLogEntity> logs)
+        {
+            foreach (var log in logs)
             {
-                foreach (var log in logs)
-                {
-                    MonitorLogs.Insert(0, new MonitorLogModel(log));
-                }
-            });
+                MonitorLogs.Insert(0, new MonitorLogModel(log));
+            }
         }
 
         private void UpdateErrorLogs(IEnumerable<ErrorLogEntity> logs)
         {
-            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            System.Windows.Application.Current.Dispatcher.Invoke(new UpdateErrorLogsDelegate(RefreshErrorLogs), logs);
+        }
+
+        private void RefreshErrorLogs(IEnumerable<ErrorLogEntity> logs)
+        {
+            foreach (var log in logs)
             {
-                foreach (var log in logs)
-                {
-                    ErrorLogs.Insert(0, new ErrorLogModel(log));
-                }
-            });
+                ErrorLogs.Insert(0, new ErrorLogModel(log));
+            }
         }
 
         private void InitialParams()
