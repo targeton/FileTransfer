@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>FileTransfer</RootNamespace>
     <AssemblyName>FileTransfer</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
@@ -40,6 +40,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -55,35 +56,34 @@
     <ApplicationIcon>Transfer.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DevExpress.Data.v13.2, Version=13.2.8.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL">
+    <Reference Include="DevExpress.Data.v14.2, Version=14.2.3.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>Dll\DevExpress.Data.v13.2.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>Dll\DevExpress.Data.v14.2.dll</HintPath>
     </Reference>
-    <Reference Include="DevExpress.Utils.v13.2, Version=13.2.8.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL">
+    <Reference Include="DevExpress.Mvvm.v14.2, Version=14.2.3.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>Dll\DevExpress.Utils.v13.2.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>Dll\DevExpress.Mvvm.v14.2.dll</HintPath>
     </Reference>
-    <Reference Include="DevExpress.Xpf.Core.v13.2, Version=13.2.8.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL">
+    <Reference Include="DevExpress.Printing.v14.2.Core, Version=14.2.3.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL" />
+    <Reference Include="DevExpress.Utils.v14.2, Version=14.2.3.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>Dll\DevExpress.Xpf.Core.v13.2.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>Dll\DevExpress.Utils.v14.2.dll</HintPath>
     </Reference>
-    <Reference Include="DevExpress.Xpf.Grid.v13.2, Version=13.2.8.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL">
+    <Reference Include="DevExpress.Xpf.Core.v14.2, Version=14.2.3.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>Dll\DevExpress.Xpf.Grid.v13.2.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>Dll\DevExpress.Xpf.Core.v14.2.dll</HintPath>
     </Reference>
-    <Reference Include="DevExpress.Xpf.Grid.v13.2.Core, Version=13.2.8.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL">
+    <Reference Include="DevExpress.Xpf.Grid.v14.2, Version=14.2.3.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>Dll\DevExpress.Xpf.Grid.v13.2.Core.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>Dll\DevExpress.Xpf.Grid.v14.2.dll</HintPath>
     </Reference>
-    <Reference Include="DevExpress.Xpf.Mvvm.v13.2, Version=13.2.8.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL">
+    <Reference Include="DevExpress.Xpf.Grid.v14.2.Core, Version=14.2.3.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>Dll\DevExpress.Xpf.Mvvm.v13.2.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>Dll\DevExpress.Xpf.Grid.v14.2.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpf.Printing.v14.2, Version=14.2.3.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Dll\DevExpress.Xpf.Printing.v14.2.dll</HintPath>
     </Reference>
     <Reference Include="GalaSoft.MvvmLight.Extras.WPF4, Version=4.1.27.22692, Culture=neutral, PublicKeyToken=1673db7d5906b0ad, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -105,8 +105,34 @@
       <HintPath>Dll\Microsoft.Practices.ServiceLocation.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Microsoft.WindowsAPICodePack, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Dll\Microsoft.WindowsAPICodePack.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAPICodePack.Shell, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Dll\Microsoft.WindowsAPICodePack.Shell.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="NHibernate, Version=4.0.0.4000, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Dll\NHibernate.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="NHibernate.Mapping.Attributes, Version=3.2.0.0, Culture=neutral, PublicKeyToken=aa95f207798dfdb4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Dll\NHibernate.Mapping.Attributes.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Data.SQLite, Version=1.0.92.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Dll\System.Data.SQLite.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Management" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Windows.Interactivity, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -141,10 +167,31 @@
     <Compile Include="Converters\SubscribeNetworkConverter.cs" />
     <Compile Include="Converters\SubscribeSummaryConverter.cs" />
     <Compile Include="Converters\VisibilityToNullableBooleanConverter.cs" />
+    <Compile Include="DbHelper\DbAccessHelper.cs" />
+    <Compile Include="DbHelper\Entitys\ErrorLogEntity.cs" />
+    <Compile Include="DbHelper\Entitys\MonitorLogEntity.cs" />
+    <Compile Include="DbHelper\Entitys\ReceiveLogEntity.cs" />
+    <Compile Include="DbHelper\Entitys\SendLogEntity.cs" />
+    <Compile Include="DbHelper\SqliteHelper.cs" />
+    <Compile Include="DXSplashScreen\SplashScreenView.xaml.cs">
+      <DependentUpon>SplashScreenView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="FileWatcher\FilesRecord.cs" />
-    <Compile Include="FileWatcher\IOHelper.cs" />
     <Compile Include="FileWatcher\MonitorChanges.cs" />
     <Compile Include="FileWatcher\SendFileProcess.cs" />
+    <Compile Include="IO\IOHelper.cs" />
+    <Compile Include="IO\WriteDataBuffer.cs" />
+    <Compile Include="IO\WriteDataType.cs" />
+    <Compile Include="IO\WriteFile.cs" />
+    <Compile Include="IO\WriteFileManager.cs" />
+    <Compile Include="Log4NetLayout\CustomLogLayout.cs" />
+    <Compile Include="Log4NetLayout\CustomLogPatternConveter.cs" />
+    <Compile Include="LogToDb\ErrorLogger.cs" />
+    <Compile Include="LogToDb\LogHelper.cs" />
+    <Compile Include="LogToDb\LogToDb.cs" />
+    <Compile Include="LogToDb\MonitorLogger.cs" />
+    <Compile Include="LogToDb\ReceiveLogger.cs" />
+    <Compile Include="LogToDb\SendLogger.cs" />
     <Compile Include="Models\ErrorLogModel.cs" />
     <Compile Include="Models\MonitorLogModel.cs" />
     <Compile Include="Models\MonitorModel.cs" />
@@ -152,21 +199,51 @@
     <Compile Include="Models\SendLogModel.cs" />
     <Compile Include="Models\SubscribeInfoModel.cs" />
     <Compile Include="Models\SubscribeModel.cs" />
+    <Compile Include="Permission\ConfirmLicense.cs" />
+    <Compile Include="Permission\MachineCode.cs" />
+    <Compile Include="Sockets\ReceiveCheckConnect.cs" />
+    <Compile Include="Sockets\ReceiveContext.cs" />
+    <Compile Include="Sockets\ReceiveDeleteMonitor.cs" />
+    <Compile Include="Sockets\ReceiveFiles.cs" />
+    <Compile Include="Sockets\ReceiveOnlineOffline.cs" />
+    <Compile Include="Sockets\ReceiveProcess.cs" />
+    <Compile Include="Sockets\ReceiveRequestMonitor.cs" />
+    <Compile Include="Sockets\ReceiveSubscribeInfo.cs" />
+    <Compile Include="Sockets\ReceiveUnregistSubscirbe.cs" />
+    <Compile Include="Sockets\SendCheckConnect.cs" />
+    <Compile Include="Sockets\SendContext.cs" />
+    <Compile Include="Sockets\SendDeleteMonitor.cs" />
+    <Compile Include="Sockets\SendFiles.cs" />
+    <Compile Include="Sockets\SendOnlineOffline.cs" />
+    <Compile Include="Sockets\SendProcess.cs" />
+    <Compile Include="Sockets\SendRequestMonitor.cs" />
+    <Compile Include="Sockets\SendSubscribeInfo.cs" />
+    <Compile Include="Sockets\SendUnregisterSubscribe.cs" />
+    <Compile Include="Sockets\SocketUtil.cs" />
     <Compile Include="Sockets\SynchronousSocket.cs" />
     <Compile Include="Sockets\SynchronousSocketManager.cs" />
+    <Compile Include="Utils\ProducerConsumerLite.cs" />
     <Compile Include="Utils\UtilHelper.cs" />
     <Compile Include="ValidationRules\IPAdressCheckRule.cs" />
     <Compile Include="ValidationRules\PosIntCheckRule.cs" />
+    <Compile Include="ViewModels\AddMonitorViewModel.cs" />
     <Compile Include="ViewModels\LogsQueryViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="ViewModels\SubscribeViewModel.cs" />
     <Compile Include="ViewModels\ViewModelLocator.cs" />
+    <Compile Include="Views\AddMonitorView.xaml.cs">
+      <DependentUpon>AddMonitorView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\LogsQueryView.xaml.cs">
       <DependentUpon>LogsQueryView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\SubscribeView.xaml.cs">
       <DependentUpon>SubscribeView.xaml</DependentUpon>
     </Compile>
+    <Page Include="DXSplashScreen\SplashScreenView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -180,6 +257,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Views\AddMonitorView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\LogsQueryView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -203,6 +284,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Resource Include="DXSplashScreen\splash.png" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -210,11 +292,18 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
+    <Content Include="Configs\sqlite.cfg.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Database\log.db">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <AppDesigner Include="Properties\" />
+    <Resource Include="Resources\fontawesome.ttf" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.5">
@@ -234,22 +323,25 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Dll\DevExpress.Data.v13.2.dll">
+    <Content Include="Dll\DevExpress.Data.v14.2.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Dll\DevExpress.Utils.v13.2.dll">
+    <Content Include="Dll\DevExpress.Mvvm.v14.2.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Dll\DevExpress.Xpf.Core.v13.2.dll">
+    <Content Include="Dll\DevExpress.Utils.v14.2.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Dll\DevExpress.Xpf.Grid.v13.2.Core.dll">
+    <Content Include="Dll\DevExpress.Xpf.Core.v14.2.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Dll\DevExpress.Xpf.Grid.v13.2.dll">
+    <Content Include="Dll\DevExpress.Xpf.Grid.v14.2.Core.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Dll\DevExpress.Xpf.Mvvm.v13.2.dll">
+    <Content Include="Dll\DevExpress.Xpf.Grid.v14.2.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Dll\DevExpress.Xpf.Printing.v14.2.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Dll\log4net.dll">
@@ -273,14 +365,29 @@
     <Content Include="Dll\Microsoft.Practices.ServiceLocation.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Dll\Microsoft.WindowsAPICodePack.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Dll\Microsoft.WindowsAPICodePack.Shell.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Dll\NHibernate.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Dll\NHibernate.Mapping.Attributes.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Dll\System.Data.SQLite.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Dll\System.Windows.Interactivity.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Resources\Transfer.ico" />
     <Resource Include="Resources\列表-展开.png" />
     <Resource Include="Resources\列表-收起.png" />
     <Resource Include="Transfer.ico" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

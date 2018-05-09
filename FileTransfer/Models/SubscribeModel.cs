@@ -1,9 +1,4 @@
 ﻿using GalaSoft.MvvmLight;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Serialization;
 
 namespace FileTransfer.Models
@@ -35,15 +30,15 @@ namespace FileTransfer.Models
             }
         }
 
-        private string _monitorDirectory;
-        [XmlAttribute("MonitorDirectory")]
-        public string MonitorDirectory
+        private string _monitorAlias;
+        [XmlAttribute("MonitorAlias")]
+        public string MonitorAlias
         {
-            get { return _monitorDirectory; }
+            get { return _monitorAlias; }
             set
             {
-                _monitorDirectory = value;
-                RaisePropertyChanged("MonitorDirectory");
+                _monitorAlias = value;
+                RaisePropertyChanged("MonitorAlias");
             }
         }
 

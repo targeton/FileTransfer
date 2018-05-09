@@ -1,18 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using GalaSoft.MvvmLight;
-using log4net;
+using FileTransfer.DbHelper.Entitys;
 
 namespace FileTransfer.Models
 {
     public class MonitorLogModel : ObservableObject
     {
         #region 变量
-        private static ILog _logger = LogManager.GetLogger(typeof(MonitorLogModel));
+        //private static ILog _logger = LogManager.GetLogger(typeof(MonitorLogModel));
         #endregion
 
         #region 属性
@@ -44,10 +39,21 @@ namespace FileTransfer.Models
         public MonitorLogModel()
         { }
 
-        public MonitorLogModel(string changeTime, string file)
+        public MonitorLogModel(string file)
         {
-            MonitorChangedTime = DateTime.ParseExact(changeTime, "yyyy-MM-dd HH:mm:ss", null);
-            MonitorChangedFile = file;
+            _monitorChangedFile = file;
+        }
+
+        public MonitorLogModel(DateTime changeTime, string file)
+        {
+            _monitorChangedTime = changeTime;
+            _monitorChangedFile = file;
+        }
+
+        public MonitorLogModel(MonitorLogEntity entity)
+        {
+            _monitorChangedTime = entity.MonitorDate;
+            _monitorChangedFile = entity.ChangedFile;
         }
         #endregion
     }

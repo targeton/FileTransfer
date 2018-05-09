@@ -1,14 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace FileTransfer.FileWatcher
 {
     public class MonitorChanges
     {
-        #region 属性       
+        #region 属性
+        private string _monitorAlias;
+
+        public string MonitorAlias
+        {
+            get { return _monitorAlias; }
+            set { _monitorAlias = value; }
+        }
+
         private string _monitorDirectory;
 
         public string MonitorDirectory
@@ -16,6 +20,7 @@ namespace FileTransfer.FileWatcher
             get { return _monitorDirectory; }
             set { _monitorDirectory = value; }
         }
+
 
         private List<string> _subscribeIPs;
 
@@ -32,7 +37,7 @@ namespace FileTransfer.FileWatcher
             get { return _fileChanges; }
             set { _fileChanges = value; }
         }
-        
+
 
         #endregion
     }

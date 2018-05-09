@@ -1,4 +1,6 @@
-﻿using FileTransfer.Models;
+﻿using FileTransfer.DbHelper.Entitys;
+using FileTransfer.LogToDb;
+using FileTransfer.Models;
 using FileTransfer.ViewModels;
 using GalaSoft.MvvmLight.Ioc;
 using log4net;
@@ -7,7 +9,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
 
@@ -57,11 +58,11 @@ namespace FileTransfer.Configs
             get { return _scanPerid; }
         }
 
-        private string _incompleteSendSavePath;
+        private string _exceptionSavePath;
 
-        public string IncompleteSendSavePath
+        public string ExceptionSavePath
         {
-            get { return _incompleteSendSavePath; }
+            get { return _exceptionSavePath; }
         }
 
         #endregion
@@ -93,7 +94,9 @@ namespace FileTransfer.Configs
             }
             catch (Exception e)
             {
-                _logger.Error(string.Format("配置项序列化时发生错误：{0}", e.Message), e);
+                string msg = string.Format("配置项序列化时发生错误：{0}", e.Message);
+                _logger.Warn(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "WARN", msg));
                 return string.Empty;
             }
         }
@@ -128,7 +131,9 @@ namespace FileTransfer.Configs
             }
             catch (Exception e)
             {
-                _logger.Error(string.Format("配置项转换为Xml时出错：{0}", e.Message), e);
+                string msg = string.Format("配置项转换为Xml时出错：{0}", e.Message);
+                _logger.Warn(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
             }
         }
 
@@ -149,7 +154,9 @@ namespace FileTransfer.Configs
             }
             catch (Exception e)
             {
-                _logger.Error(string.Format("配置文件反序列化过程中出错：{0}", e.Message), e);
+                string msg = string.Format("配置文件反序列化过程中出错：{0}", e.Message);
+                _logger.Warn(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
                 return null;
             }
         }
@@ -160,7 +167,7 @@ namespace FileTransfer.Configs
             _subscribeSettings = subscribes;
             _listenPort = port;
             _scanPerid = scanPeriod;
-            _incompleteSendSavePath = savePath;
+            _exceptionSavePath = savePath;
             var config = new ConfigClass(monitors, subscribes, port, scanPeriod, savePath);
             ExportXml(_settingPath, config);
         }
@@ -171,22 +178,22 @@ namespace FileTransfer.Configs
             _subscribeSettings = SimpleIoc.Default.GetInstance<MainViewModel>().SubscribeCollection.ToList();
             _listenPort = SimpleIoc.Default.GetInstance<MainViewModel>().ListenPort;
             _scanPerid = SimpleIoc.Default.GetInstance<MainViewModel>().ScanPeriod;
-            _incompleteSendSavePath = SimpleIoc.Default.GetInstance<MainViewModel>().SendExceptionSavePath;
-            var config = new ConfigClass(_monitorSettings, _subscribeSettings, _listenPort, _scanPerid, _incompleteSendSavePath);
+            _exceptionSavePath = SimpleIoc.Default.GetInstance<MainViewModel>().ExceptionSavePath;
+            var config = new ConfigClass(_monitorSettings, _subscribeSettings, _listenPort, _scanPerid, _exceptionSavePath);
             ExportXml(_settingPath, config);
         }
 
         public void SaveScanPeridSetting(int scanPerid)
         {
             _scanPerid = scanPerid;
-            var config = new ConfigClass(_monitorSettings, _subscribeSettings, _listenPort, _scanPerid, _incompleteSendSavePath);
+            var config = new ConfigClass(_monitorSettings, _subscribeSettings, _listenPort, _scanPerid, _exceptionSavePath);
             ExportXml(_settingPath, config);
         }
 
         public void SaveListenPortSetting(int listenPort)
         {
             _listenPort = listenPort;
-            var config = new ConfigClass(_monitorSettings, _subscribeSettings, _listenPort, _scanPerid, _incompleteSendSavePath);
+            var config = new ConfigClass(_monitorSettings, _subscribeSettings, _listenPort, _scanPerid, _exceptionSavePath);
             ExportXml(_settingPath, config);
         }
 
@@ -195,14 +202,16 @@ namespace FileTransfer.Configs
             ConfigClass config = ImportXml(_settingPath) as ConfigClass;
             if (config == null)
             {
-                _logger.Warn("加载配置文件转换异常！采用默认配置。");
+                string msg = "加载配置文件转换异常！采用默认配置。";
+                _logger.Warn(msg);
+                LogHelper.Instance.ErrorLogger.Add(new ErrorLogEntity(DateTime.Now, "ERROR", msg));
                 _monitorSettings = new List<MonitorModel>();
                 _subscribeSettings = new List<SubscribeModel>();
                 _listenPort = 8888;
                 _scanPerid = 1;
-                _incompleteSendSavePath = @"C:\IncompleteSendFiles";
-                if (!Directory.Exists(_incompleteSendSavePath))
-                    Directory.CreateDirectory(_incompleteSendSavePath);
+                _exceptionSavePath = @"C:\ExceptionSave";
+                if (!Directory.Exists(_exceptionSavePath))
+                    Directory.CreateDirectory(_exceptionSavePath);
             }
             else
             {
@@ -210,12 +219,12 @@ namespace FileTransfer.Configs
                 _subscribeSettings = config.SubscribeSettings;
                 _listenPort = config.ListenPort;
                 _scanPerid = config.ScanPeriod;
-                if (Directory.Exists(config.IncompleteSendSavePath))
-                    _incompleteSendSavePath = config.IncompleteSendSavePath;
+                if (Directory.Exists(config.ExceptionSavePath))
+                    _exceptionSavePath = config.ExceptionSavePath;
                 else
-                    _incompleteSendSavePath = @"C:\IncompleteSendFiles";
-                if (!Directory.Exists(_incompleteSendSavePath))
-                    Directory.CreateDirectory(_incompleteSendSavePath);
+                    _exceptionSavePath = @"C:\ExceptionSave";
+                if (!Directory.Exists(_exceptionSavePath))
+                    Directory.CreateDirectory(_exceptionSavePath);
             }
         }
 

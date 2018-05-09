@@ -1,9 +1,6 @@
-﻿using GalaSoft.MvvmLight;
+﻿using FileTransfer.DbHelper.Entitys;
+using GalaSoft.MvvmLight;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FileTransfer.Models
 {
@@ -43,6 +40,18 @@ namespace FileTransfer.Models
             }
         }
 
+        #endregion
+
+        #region 构造函数
+        public ErrorLogModel()
+        { }
+
+        public ErrorLogModel(ErrorLogEntity entity)
+        {
+            _errorOccurTime = entity.LogDate;
+            _errorFlag = entity.LogLevel;
+            _errorContent = entity.LogMessage;
+        }
         #endregion
     }
 }

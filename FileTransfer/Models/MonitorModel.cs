@@ -1,10 +1,5 @@
 ﻿using GalaSoft.MvvmLight;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Serialization;
 
 namespace FileTransfer.Models
@@ -12,6 +7,18 @@ namespace FileTransfer.Models
     public class MonitorModel : ObservableObject
     {
         #region 属性
+        private string _monitorAlias;
+        [XmlAttribute("MonitorAlias")]
+        public string MonitorAlias
+        {
+            get { return _monitorAlias; }
+            set
+            {
+                _monitorAlias = value;
+                RaisePropertyChanged("MonitorAlias");
+            }
+        }
+
         private string _monitorDirectory;
         [XmlAttribute("MonitorDirectory")]
         public string MonitorDirectory
@@ -64,7 +71,7 @@ namespace FileTransfer.Models
         [XmlArray("SubscribeInfos"), XmlArrayItem("SubscribeInfo")]
         public ObservableCollection<SubscribeInfoModel> SubscribeInfos
         {
-            get { return _subscribeInfos ; }
+            get { return _subscribeInfos; }
             set
             {
                 _subscribeInfos = value;

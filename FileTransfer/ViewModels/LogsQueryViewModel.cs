@@ -1,30 +1,22 @@
-﻿using FileTransfer.Models;
+﻿using FileTransfer.DbHelper;
+using FileTransfer.DbHelper.Entitys;
+using FileTransfer.LogToDb;
+using FileTransfer.Models;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using log4net;
+using NHibernate;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace FileTransfer.ViewModels
 {
     public class LogsQueryViewModel : ViewModelBase
     {
         #region 变量
-        private string _logsFilePath;
-        private static ILog _logger = LogManager.GetLogger(typeof(LogsQueryViewModel));
-        private readonly string _fileLogPattern;
-        private readonly string _sendLogPattern;
-        private readonly string _receiveLogPattern;
-        private readonly string _errorLogPattern;
-        private readonly string _monitorLogPattern;
-
+        private ILog _logger = LogManager.GetLogger(typeof(LogsQueryViewModel));
         #endregion
 
         #region 属性
@@ -76,107 +68,271 @@ namespace FileTransfer.ViewModels
 
         #region 命令
         public RelayCommand LoadCommand { get; set; }
+        public RelayCommand RefreshSendLogsCommand { get; set; }
+        public RelayCommand RefreshReceiveLogsCommand { get; set; }
+        public RelayCommand RefreshMonitorLogsCommand { get; set; }
+        public RelayCommand RefreshErrorLogsCommand { get; set; }
         #endregion
 
         #region 构造函数
         public LogsQueryViewModel()
         {
-            _fileLogPattern = @"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}),\d{3} \[\d+] [A-Z,a-z,0-9, ]+.*?- \[File]([\s\S]*?)";
-            _sendLogPattern = @"\[File]([\s\S]*?)\[SubscribeIP]([\s\S]*?)\[FileSendState]([\s\S]*?)";
-            _receiveLogPattern = @"\[File]([\s\S]*?)\[MonitorIP]([\s\S]*?)\[MonitorDirectory]([\s\S]*?)\[FileReceiveState]([\s\S]*?)";
-            _errorLogPattern = @"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}),\d{3} \[\d+] (WARN|ERROR|FATAL){1} [A-Z,a-z,0-9, ]+.*?- ([\s\S]*?)";
-            _monitorLogPattern = @"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}),\d{3} \[\d+] [A-Z,a-z,0-9, ]+.*?- \[MonitorFile]([\s\S]*?)";
+            InitialEvents();
             InitialParams();
             InitialCommands();
         }
         #endregion
 
         #region 方法
-        private void InitialParams()
+        private void InitialEvents()
         {
-            _logsFilePath = Path.Combine(Environment.CurrentDirectory, "logs");
+            LogHelper.Instance.SendLogger.NotifyInsertRows = UpdateSendLogs;
+            LogHelper.Instance.ReceiveLogger.NotifyInsertRows = UpdateReceiveLogs;
+            LogHelper.Instance.MonitorLogger.NotifyInsertRows = UpdateMonitorLogs;
+            LogHelper.Instance.ErrorLogger.NotifyInsertRows = UpdateErrorLogs;
         }
+
+        private delegate void UpdateSendLogsDelegate(IEnumerable<SendLogEntity> logs);
+        private delegate void UpdateReceiveLogsDelegate(IEnumerable<ReceiveLogEntity> logs);
+        private delegate void UpdateMonitorLogsDelegate(IEnumerable<MonitorLogEntity> logs);
+        private delegate void UpdateErrorLogsDelegate(IEnumerable<ErrorLogEntity> logs);
+
+        private void UpdateSendLogs(IEnumerable<SendLogEntity> logs)
+        {
+            System.Windows.Application.Current.Dispatcher.Invoke(new UpdateSendLogsDelegate(RefreshSendLogs), logs);
+        }
+
+        private void RefreshSendLogs(IEnumerable<SendLogEntity> logs)
+        {
+            foreach (var log in logs)
+            {
+                SendLogs.Insert(0, new SendLogModel(log));
+            }
+        }
+
+        private void UpdateReceiveLogs(IEnumerable<ReceiveLogEntity> logs)
+        {
+            System.Windows.Application.Current.Dispatcher.Invoke(new UpdateReceiveLogsDelegate(RefreshReceiveLogs), logs);
+        }
+
+        private void RefreshReceiveLogs(IEnumerable<ReceiveLogEntity> logs)
+        {
+            foreach (var log in logs)
+            {
+                ReceiveLogs.Insert(0, new ReceiveLogModel(log));
+            }
+        }
+
+        private void UpdateMonitorLogs(IEnumerable<MonitorLogEntity> logs)
+        {
+            System.Windows.Application.Current.Dispatcher.Invoke(new UpdateMonitorLogsDelegate(RefreshMonitorLogs), logs);
+        }
+
+        private void RefreshMonitorLogs(IEnumerable<MonitorLogEntity> logs)
+        {
+            foreach (var log in logs)
+            {
+                MonitorLogs.Insert(0, new MonitorLogModel(log));
+            }
+        }
+
+        private void UpdateErrorLogs(IEnumerable<ErrorLogEntity> logs)
+        {
+            System.Windows.Application.Current.Dispatcher.Invoke(new UpdateErrorLogsDelegate(RefreshErrorLogs), logs);
+        }
+
+        private void RefreshErrorLogs(IEnumerable<ErrorLogEntity> logs)
+        {
+            foreach (var log in logs)
+            {
+                ErrorLogs.Insert(0, new ErrorLogModel(log));
+            }
+        }
+
+        private void InitialParams()
+        { }
 
         private void InitialCommands()
         {
             LoadCommand = new RelayCommand(ExecuteLoadCommand);
+            RefreshSendLogsCommand = new RelayCommand(ExecuteRefreshSendLogsCommand);
+            RefreshReceiveLogsCommand = new RelayCommand(ExecuteRefreshReceiveLogsCommand);
+            RefreshMonitorLogsCommand = new RelayCommand(ExecuteRefreshMonitorLogsCommand);
+            RefreshErrorLogsCommand = new RelayCommand(ExecuteRefreshErrorLogsCommand);
         }
 
         private void ExecuteLoadCommand()
         {
-            //判断文件夹是否存在
-            if (!Directory.Exists(_logsFilePath)) return;
-            //获取所有日志
-            List<string> logFiles = Directory.GetFiles(_logsFilePath, @"File*.log*").ToList();
-            foreach (var logFile in logFiles)
-            {
-                GetLogs(logFile);
-            }
+            Task.Factory.StartNew(() => { LoadAllLogs(); });
         }
 
-        private async void GetLogs(string file)
+        private void LoadAllLogs()
         {
             try
             {
-                using (FileStream fs = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                IList<SendLogEntity> sendLogResult = null;
+                IList<ReceiveLogEntity> receiveLogResult = null;
+                IList<MonitorLogEntity> monitorLogResult = null;
+                IList<ErrorLogEntity> logResult = null;
+                using (ISession session = DbAccessHelper.SessionFactory.OpenSession())
                 {
-                    using (StreamReader sr = new StreamReader(fs, Encoding.GetEncoding("utf-8")))
+                    sendLogResult = session.QueryOver<SendLogEntity>().OrderBy(log => log.SendDate).Desc.List();
+                    receiveLogResult = session.QueryOver<ReceiveLogEntity>().OrderBy(log => log.ReceiveDate).Desc.List();
+                    monitorLogResult = session.QueryOver<MonitorLogEntity>().OrderBy(log => log.MonitorDate).Desc.List();
+                    logResult = session.QueryOver<ErrorLogEntity>().OrderBy(log => log.LogDate).Desc.List();
+                }
+                System.Windows.Application.Current.Dispatcher.Invoke(new Action(() =>
+                {
+                    if (sendLogResult != null)
                     {
-                        while (sr.Peek() >= 0)
+                        SendLogs = new ObservableCollection<SendLogModel>();
+                        foreach (var log in sendLogResult)
                         {
-                            string logLine = await sr.ReadLineAsync();
-                            Match match = Regex.Match(logLine, _fileLogPattern, RegexOptions.RightToLeft);
-                            if (!match.Success)
-                            {
-                                Match errorMatch = Regex.Match(logLine, _errorLogPattern, RegexOptions.RightToLeft);
-                                if (errorMatch.Success)
-                                {
-                                    string dateTime = errorMatch.Groups[1].Value;
-                                    string logType = errorMatch.Groups[2].Value;
-                                    string content = errorMatch.Groups[3].Value;
-                                    ErrorLogs.Add(new ErrorLogModel() { ErrorOccurTime = DateTime.ParseExact(dateTime, "yyyy-MM-dd HH:mm:ss", null), ErrorFlag = logType, ErrorContent = content });
-                                }
-                                else
-                                {
-                                    Match monitorMatch = Regex.Match(logLine, _monitorLogPattern, RegexOptions.RightToLeft);
-                                    if (!monitorMatch.Success) continue;
-                                    string dateTime = monitorMatch.Groups[1].Value;
-                                    string content = monitorMatch.Groups[2].Value;
-                                    MonitorLogs.Add(new MonitorLogModel(dateTime, content));
-                                }
-                            }
-                            else
-                            {
-                                string dateTime = match.Groups[1].Value;
-                                string logMsg = string.Format("[File]{0}", match.Groups[2].Value);
-                                Match sendMatch = Regex.Match(logMsg, _sendLogPattern, RegexOptions.RightToLeft);
-                                if (sendMatch.Success)
-                                {
-                                    string sendFile = sendMatch.Groups[1].Value;
-                                    string subscribeIP = sendMatch.Groups[2].Value;
-                                    string sendState = sendMatch.Groups[3].Value;
-                                    SendLogs.Add(new SendLogModel() { SendFileTime = DateTime.ParseExact(dateTime, "yyyy-MM-dd HH:mm:ss", null), SendFileName = sendFile, SubscribeIP = subscribeIP, SendFileState = sendState });
-                                }
-                                else
-                                {
-                                    Match receiveMatch = Regex.Match(logMsg, _receiveLogPattern, RegexOptions.RightToLeft);
-                                    if (!receiveMatch.Success) continue;
-                                    string receiveFile = receiveMatch.Groups[1].Value;
-                                    string monitorIP = receiveMatch.Groups[2].Value;
-                                    string monitorDirectory = receiveMatch.Groups[3].Value;
-                                    string receiveState = receiveMatch.Groups[4].Value;
-                                    ReceiveLogs.Add(new ReceiveLogModel() { ReceiveFileTime = DateTime.ParseExact(dateTime, "yyyy-MM-dd HH:mm:ss", null), ReceiveFileName = receiveFile, MonitorIP = monitorIP, MonitorDirectory = monitorDirectory, ReceiveFileState = receiveState });
-                                }
-                            }
+                            SendLogs.Add(new SendLogModel(log));
                         }
                     }
-                }
+                    if (receiveLogResult != null)
+                    {
+                        ReceiveLogs = new ObservableCollection<ReceiveLogModel>();
+                        foreach (var log in receiveLogResult)
+                        {
+                            ReceiveLogs.Add(new ReceiveLogModel(log));
+                        }
+                    }
+                    if (monitorLogResult != null)
+                    {
+                        MonitorLogs = new ObservableCollection<MonitorLogModel>();
+                        foreach (var log in monitorLogResult)
+                        {
+                            MonitorLogs.Add(new MonitorLogModel(log));
+                        }
+                    }
+                    if (logResult != null)
+                    {
+                        ErrorLogs = new ObservableCollection<ErrorLogModel>();
+                        foreach (var log in logResult)
+                        {
+                            ErrorLogs.Add(new ErrorLogModel(log));
+                        }
+                    }
+                }), null);
             }
             catch (Exception e)
             {
-                _logger.Error(string.Format("加载日志异常！异常信息为：{0}", e.Message));
-                MessageBox.Show(string.Format("加载日志异常！异常信息为：{0}", e.Message), "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                _logger.Warn(string.Format("从数据库查询日志时，发生异常{0}", e.Message));
             }
+        }
+
+        private void ExecuteRefreshSendLogsCommand()
+        {
+            Task.Factory.StartNew(() =>
+            {
+                try
+                {
+                    IList<SendLogEntity> sendLogResult = null;
+                    using (ISession session = DbAccessHelper.SessionFactory.OpenSession())
+                    {
+                        sendLogResult = session.QueryOver<SendLogEntity>().OrderBy(log => log.SendDate).Desc.List();
+                    }
+                    System.Windows.Application.Current.Dispatcher.Invoke(new Action(() =>
+                    {
+                        if (sendLogResult == null) return;
+                        SendLogs = new ObservableCollection<SendLogModel>();
+                        foreach (var log in sendLogResult)
+                        {
+                            SendLogs.Add(new SendLogModel(log));
+                        }
+                    }), null);
+                }
+                catch (Exception e)
+                {
+                    _logger.Warn(string.Format("从数据库查询发送日志时，发生异常{0}", e.Message));
+                }
+            });
+        }
+
+        private void ExecuteRefreshReceiveLogsCommand()
+        {
+            Task.Factory.StartNew(() =>
+            {
+                try
+                {
+                    IList<ReceiveLogEntity> receiveLogResult = null;
+                    using (ISession session = DbAccessHelper.SessionFactory.OpenSession())
+                    {
+                        receiveLogResult = session.QueryOver<ReceiveLogEntity>().OrderBy(log => log.ReceiveDate).Desc.List();
+                    }
+                    System.Windows.Application.Current.Dispatcher.Invoke(new Action(() =>
+                    {
+                        if (receiveLogResult == null) return;
+                        ReceiveLogs = new ObservableCollection<ReceiveLogModel>();
+                        foreach (var log in receiveLogResult)
+                        {
+                            ReceiveLogs.Add(new ReceiveLogModel(log));
+                        }
+                    }), null);
+                }
+                catch (Exception e)
+                {
+                    _logger.Warn(string.Format("从数据库查询接收日志时，发生异常{0}", e.Message));
+                }
+            });
+        }
+
+        private void ExecuteRefreshMonitorLogsCommand()
+        {
+            Task.Factory.StartNew(() =>
+            {
+                try
+                {
+                    IList<MonitorLogEntity> monitorLogResult = null;
+                    using (ISession session = DbAccessHelper.SessionFactory.OpenSession())
+                    {
+                        monitorLogResult = session.QueryOver<MonitorLogEntity>().OrderBy(log => log.MonitorDate).Desc.List();
+                    }
+                    System.Windows.Application.Current.Dispatcher.Invoke(new Action(() =>
+                    {
+                        if (monitorLogResult == null) return;
+                        MonitorLogs = new ObservableCollection<MonitorLogModel>();
+                        foreach (var log in monitorLogResult)
+                        {
+                            MonitorLogs.Add(new MonitorLogModel(log));
+                        }
+                    }), null);
+                }
+                catch (Exception e)
+                {
+                    _logger.Warn(string.Format("从数据库查询监控日志时，发生异常{0}", e.Message));
+                }
+            });
+        }
+
+        private void ExecuteRefreshErrorLogsCommand()
+        {
+            Task.Factory.StartNew(() =>
+            {
+                try
+                {
+                    IList<ErrorLogEntity> logResult = null;
+                    using (ISession session = DbAccessHelper.SessionFactory.OpenSession())
+                    {
+                        logResult = session.QueryOver<ErrorLogEntity>().OrderBy(log => log.LogDate).Desc.List();
+                    }
+                    System.Windows.Application.Current.Dispatcher.Invoke(new Action(() =>
+                    {
+                        if (logResult == null) return;
+                        ErrorLogs = new ObservableCollection<ErrorLogModel>();
+                        foreach (var log in logResult)
+                        {
+                            ErrorLogs.Add(new ErrorLogModel(log));
+                        }
+                    }), null);
+                }
+                catch (Exception e)
+                {
+                    _logger.Warn(string.Format("从数据库查询其他日志时，发生异常{0}", e.Message));
+                }
+            });
         }
         #endregion
     }

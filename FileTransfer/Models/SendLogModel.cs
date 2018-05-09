@@ -1,9 +1,6 @@
-﻿using GalaSoft.MvvmLight;
+﻿using FileTransfer.DbHelper.Entitys;
+using GalaSoft.MvvmLight;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FileTransfer.Models
 {
@@ -57,7 +54,35 @@ namespace FileTransfer.Models
                 RaisePropertyChanged("SendFileState");
             }
         }
-        
+
+        #endregion
+
+        #region 构造函数
+        public SendLogModel()
+        { }
+
+        public SendLogModel(string sendFile, string subscribeIP, string sendState)
+        {
+            _sendFileName = sendFile;
+            _subscribeIP = subscribeIP;
+            _sendFileState = sendState;
+        }
+
+        public SendLogModel(DateTime sendTime, string sendFile, string subscribeIP, string sendState)
+        {
+            _sendFileTime = sendTime;
+            _sendFileName = sendFile;
+            _subscribeIP = subscribeIP;
+            _sendFileState = sendState;
+        }
+
+        public SendLogModel(SendLogEntity entity)
+        {
+            _sendFileTime = entity.SendDate;
+            _sendFileName = entity.SendFile;
+            _subscribeIP = entity.SubscribeIP;
+            _sendFileState = entity.SendState;
+        }
         #endregion
     }
 }

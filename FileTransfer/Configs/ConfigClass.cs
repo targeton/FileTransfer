@@ -1,9 +1,5 @@
 ﻿using FileTransfer.Models;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Serialization;
 
 namespace FileTransfer.Configs
@@ -42,12 +38,12 @@ namespace FileTransfer.Configs
             set { _scanPeriod = value; }
         }
 
-        private string _incompleteSendSavePath;
+        private string _exceptionSavePath;
         [XmlElement("IncompleteSendSavePath")]
-        public string IncompleteSendSavePath
+        public string ExceptionSavePath
         {
-            get { return _incompleteSendSavePath; }
-            set { _incompleteSendSavePath = value; }
+            get { return _exceptionSavePath; }
+            set { _exceptionSavePath = value; }
         }
 
 
@@ -63,7 +59,7 @@ namespace FileTransfer.Configs
             SubscribeSettings = subscribes;
             ListenPort = listenPort;
             ScanPeriod = scanPeriod;
-            IncompleteSendSavePath = savePath;
+            ExceptionSavePath = savePath;
         }
         #endregion
     }

@@ -5,6 +5,8 @@ VisualStudioVersion = 12.0.30723.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileTransfer", "FileTransfer\FileTransfer.csproj", "{AE5FE8A6-854F-44CB-8D61-463290A00EB1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LicenseGenerator", "LicenseGenerator\LicenseGenerator.csproj", "{9C0C8417-C470-4764-A72E-8E8810C4B3F3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		CD_ROM|Any CPU = CD_ROM|Any CPU
@@ -24,6 +26,16 @@ Global
 		{AE5FE8A6-854F-44CB-8D61-463290A00EB1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{AE5FE8A6-854F-44CB-8D61-463290A00EB1}.SingleImage|Any CPU.ActiveCfg = Release|Any CPU
 		{AE5FE8A6-854F-44CB-8D61-463290A00EB1}.SingleImage|Any CPU.Build.0 = Release|Any CPU
+		{9C0C8417-C470-4764-A72E-8E8810C4B3F3}.CD_ROM|Any CPU.ActiveCfg = Release|Any CPU
+		{9C0C8417-C470-4764-A72E-8E8810C4B3F3}.CD_ROM|Any CPU.Build.0 = Release|Any CPU
+		{9C0C8417-C470-4764-A72E-8E8810C4B3F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C0C8417-C470-4764-A72E-8E8810C4B3F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C0C8417-C470-4764-A72E-8E8810C4B3F3}.DVD-5|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C0C8417-C470-4764-A72E-8E8810C4B3F3}.DVD-5|Any CPU.Build.0 = Debug|Any CPU
+		{9C0C8417-C470-4764-A72E-8E8810C4B3F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C0C8417-C470-4764-A72E-8E8810C4B3F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C0C8417-C470-4764-A72E-8E8810C4B3F3}.SingleImage|Any CPU.ActiveCfg = Release|Any CPU
+		{9C0C8417-C470-4764-A72E-8E8810C4B3F3}.SingleImage|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

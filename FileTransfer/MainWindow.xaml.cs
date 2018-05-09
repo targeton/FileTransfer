@@ -1,23 +1,9 @@
 ﻿using FileTransfer.Sockets;
-using FileTransfer.ViewModels;
 using FileTransfer.Views;
-using GalaSoft.MvvmLight.Ioc;
 using GalaSoft.MvvmLight.Messaging;
-using log4net;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Interop;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Windows.Forms;
 
 namespace FileTransfer
@@ -30,6 +16,7 @@ namespace FileTransfer
         #region 变量
         private SubscribeView _subscribeView;
         private LogsQueryView _logsQueryView;
+        private AddMonitorView _addMonitorView;
         #endregion
 
         public MainWindow()
@@ -45,8 +32,8 @@ namespace FileTransfer
         private void Window_Closed(object sender, EventArgs e)
         {
             Messenger.Default.Unregister<string>(this, ReceiveMessage);
-            SimpleIoc.Default.Unregister<MainViewModel>();
-            SimpleIoc.Default.Unregister<SubscribeViewModel>();
+            //SimpleIoc.Default.Unregister<MainViewModel>();
+            //SimpleIoc.Default.Unregister<SubscribeViewModel>();
         }
 
         private void ReceiveMessage(string message)
@@ -70,6 +57,15 @@ namespace FileTransfer
                 case "CloseLogsQueryView":
                     if (_logsQueryView != null)
                         _logsQueryView.Close();
+                    break;
+                case "ShowAddMonitorView":
+                    if (_addMonitorView == null || (new WindowInteropHelper(_addMonitorView)).Handle == IntPtr.Zero)
+                        _addMonitorView = new AddMonitorView(this);
+                    _addMonitorView.ShowDialog();
+                    break;
+                case "CloseAddMonitorView":
+                    if (_addMonitorView != null)
+                        _addMonitorView.Close();
                     break;
                 default:
                     break;
